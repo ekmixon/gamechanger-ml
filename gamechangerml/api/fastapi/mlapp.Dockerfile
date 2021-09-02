@@ -1,4 +1,4 @@
-FROM python:3.6.13-buster
+FROM python:3.8.11-buster
 # get gpu enabling dependencies
 RUN curl -s -L https://nvidia.github.io/nvidia-container-runtime/gpgkey | \
   apt-key add -
