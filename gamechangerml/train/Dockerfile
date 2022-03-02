@@ -1,4 +1,4 @@
-FROM python:3.6.1
+FROM python:3.10.0b2
 RUN apt-get install ca-certificates
 ADD ./dev-requirements.txt ./dev-requirements.txt
 ENV APP_REQUIREMENTS_PATH="dev-requirements.txt"
