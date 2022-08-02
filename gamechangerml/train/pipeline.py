@@ -45,12 +45,10 @@ def lookup_wiki_summary(query):
 class Pipeline():
     def __init__(self):
         POP_DOCS_PATH = Path(os.path.join(data_path, "popular_documents.csv"))
-        if POP_DOCS_PATH.is_file():
-            self.popular_docs = pd.read_csv(POP_DOCS_PATH)
-        else:
+        if not POP_DOCS_PATH.is_file():
             print("popular_documents.csv does not exist - generating meta data")
             self.generate_meta_data()
-            self.popular_docs = pd.read_csv(POP_DOCS_PATH)
+        self.popular_docs = pd.read_csv(POP_DOCS_PATH)
 
     def generate_meta_data(self,):
         try:

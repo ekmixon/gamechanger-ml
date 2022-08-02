@@ -55,9 +55,7 @@ class Classifier(object):
             FileNotFoundError if the checkpoint path is not valid
 
         """
-        logger.info(
-            "{} version {}".format(self.__class__.__name__, self.__version__)
-        )
+        logger.info(f"{self.__class__.__name__} version {self.__version__}")
         try:
             self.cfg, cfg_dict = config.read_verify_config(config_yaml)
             _, self.cfg_name = os.path.split(config_yaml)
@@ -65,13 +63,15 @@ class Classifier(object):
         except (FileNotFoundError, ValueError) as e:
             raise e
 
-        self.runtime = dict()
-        self.runtime["class"] = str(self.__class__.__name__)
-        self.runtime["version"] = self.__version__
+        self.runtime = {
+            "class": str(self.__class__.__name__),
+            "version": self.__version__,
+        }
+
         self.runtime["config"] = self.cfg_name
 
         cfg_stats = {k_.replace("_", " "): v_ for k_, v_ in cfg_dict.items()}
-        self.runtime.update(cfg_stats)
+        self.runtime |= cfg_stats
 
         if self.cfg.random_state is None:
             self.cfg.random_state = np.random.randint(0, 100)
@@ -102,15 +102,12 @@ class Classifier(object):
         self.max_len = 0
 
         # set up tensorboard, if configured
-        if self.device == "gpu":
+        if self.device == "gpu" or self.cfg.tensorboard_path is None:
             self.summary_writer = None
-        elif self.cfg.tensorboard_path is not None:
+        else:
             self.summary_writer = SummaryWriter(
                 self.cfg.tensorboard_path, comment=self.cfg.log_id
             )
-        else:
-            self.summary_writer = None
-
         # XLM, DistilBERT and RoBERTa don't use segment_ids
         # so use token_type_ids for these model types
         self.t_id_models = ["xlnet"]
@@ -124,14 +121,11 @@ class Classifier(object):
 
         logger.info(self.__repr__())
 
-        self.training_stats = list()
+        self.training_stats = []
         self.load_model_tokenizer()
 
     def __repr__(self):
-        return '{}(config_yml="{}")'.format(
-            self.__class__.__name__,
-            self.config_yaml,
-        )
+        return f'{self.__class__.__name__}(config_yml="{self.config_yaml}")'
 
     def train_test_split(self, texts, labels):
         """
@@ -207,7 +201,7 @@ class Classifier(object):
             eps=self.cfg.eps,
             weight_decay=self.cfg.weight_decay,
         )
-        logger.info("optimizer is loaded : {}".format(str(self.optimizer)))
+        logger.info(f"optimizer is loaded : {str(self.optimizer)}")
         self.runtime["optimizer"] = "AdamW"
 
     def fit(self, train_sentences, train_labels):
@@ -252,7 +246,7 @@ class Classifier(object):
             self.max_len = max(self.max_len, len(input_ids))
 
         if self.max_len > 512:
-            logger.warning("truncate : {}".format(self.cfg.truncate))
+            logger.warning(f"truncate : {self.cfg.truncate}")
         self.max_len = cu.next_pow_two(self.max_len)
 
     def _tokenize_encode(self, texts):
@@ -261,11 +255,11 @@ class Classifier(object):
         else:
             self.max_len = self.cfg.max_seq_len
 
-        logger.info("max seq length : {}".format(self.max_len))
+        logger.info(f"max seq length : {self.max_len}")
         self.runtime["max seq len"] = self.max_len
 
-        self.input_ids = list()
-        self.attention_masks = list()
+        self.input_ids = []
+        self.attention_masks = []
 
         # `encode_plus()` does all the heavy lifting
         logger.info("tokenizing, encoding...")
@@ -289,7 +283,7 @@ class Classifier(object):
         logger.info("done tokenizing, encoding...")
 
     def train(self, train_ds, val_ds):
-        avg_loss_items = list()
+        avg_loss_items = []
 
         self.load_model_tokenizer()
         self.model.to(self.device)
@@ -322,9 +316,7 @@ class Classifier(object):
 
             self._validate(val_dataloader, epoch, avg_train_loss, train_t)
 
-        logger.info(
-            "training time : {}".format(cu.format_time(time.time() - start_t))
-        )
+        logger.info(f"training time : {cu.format_time(time.time() - start_t)}")
         # final metrics  -> tensorboard
         if self.summary_writer is not None:
             self._tb_run_metrics()
@@ -422,10 +414,10 @@ class Classifier(object):
         vt = time.time()
         total_eval_accuracy = 0.0
         total_eval_loss = 0.0
-        val_loss = list()
-        pred_flat = list()
-        labels_flat = list()
-        logits_score = list()
+        val_loss = []
+        pred_flat = []
+        labels_flat = []
+        logits_score = []
 
         # change modes
         self.model.eval()
@@ -470,8 +462,8 @@ class Classifier(object):
             self.true_val, self.predicted_val
         )
 
-        logger.info("\n\n{}".format(clf_report))
-        logger.info("confusion matrix\n\n\t{}\n".format(cm_matrix))
+        logger.info(f"\n\n{clf_report}")
+        logger.info(f"confusion matrix\n\n\t{cm_matrix}\n")
         logger.info("\tvalidation loss : {:>0.3f}".format(avg_val_loss))
         logger.info("\t            MCC : {:>0.3f}".format(mcc))
         logger.info("\t            AUC : {:>0.3f}".format(auc_val))
@@ -499,12 +491,13 @@ class Classifier(object):
         if self.cfg.checkpoint_path is not None:
             self.runtime["timestamp"] = time.time()
             ch.write_checkpoint(
-                self.cfg.checkpoint_path + "_epoch_{}".format(epoch + 1),
+                self.cfg.checkpoint_path + f"_epoch_{epoch + 1}",
                 self.model,
                 self.tokenizer,
                 avg_val_loss,
                 self.training_stats[-1],
             )
+
             self.best_loss = avg_val_loss
 
     def _tb_epoch_metrics(self, avg_val_loss, auc_val, mcc, acc_score, epoch):

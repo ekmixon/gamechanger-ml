@@ -76,19 +76,18 @@ def cola_data(data_file):
         labels = df.label.values
         return sents, labels
     except FileNotFoundError as e:
-        logger.fatal("{} : {}".format(type(e), str(e)))
+        logger.fatal(f"{type(e)} : {str(e)}")
         logger.fatal("\n\n\tThat was a fatal error my friend")
         raise e
 
 
 def _read_gc_df(data_file):
-    df = pd.read_csv(
+    return pd.read_csv(
         data_file,
         delimiter=",",
         header=None,
         names=["src", "label", "sentence"],
     )
-    return df
 
 
 def gc_data(data_file, neg_data_file, shuffle=True, topn=0):
@@ -118,7 +117,7 @@ def gc_data(data_file, neg_data_file, shuffle=True, topn=0):
         src = df.src.values
         return sents, labels, src
     except FileNotFoundError as e:
-        logger.fatal("\n{} : {}".format(type(e), str(e)))
+        logger.fatal(f"\n{type(e)} : {str(e)}")
         logger.fatal("\n\n\tThat was a fatal error my friend")
         raise e
 
@@ -126,17 +125,15 @@ def gc_data(data_file, neg_data_file, shuffle=True, topn=0):
 def gen_gc_docs(doc_path, glob, key="raw_text"):
     file_list = [f for f in os.listdir(doc_path) if fnmatch.fnmatch(f, glob)]
     logger.info("num files : {:>3,d}".format(len(file_list)))
-    if len(file_list) == 0:
-        logger.warning(
-            "no files in '{}' matching the glob '{}'".format(doc_path, glob)
-        )
+    if not file_list:
+        logger.warning(f"no files in '{doc_path}' matching the glob '{glob}'")
     for input_file in sorted(file_list):
         with open(os.path.join(doc_path, input_file)) as fin:
             jdoc = json.load(fin)
             if key in jdoc:
                 yield input_file, jdoc
             else:
-                logger.warning("`{}` not found in {}".format(key, input_file))
+                logger.warning(f"`{key}` not found in {input_file}")
 
 
 def load_data(data_file, n_samples, shuffle=False):
@@ -167,7 +164,7 @@ def load_data(data_file, n_samples, shuffle=False):
 
     _, csv_name = os.path.split(data_file)
 
-    examples = [
+    return [
         {
             "src": row["src"],
             "label": row["label"],
@@ -175,15 +172,13 @@ def load_data(data_file, n_samples, shuffle=False):
         }
         for _, row in df.iterrows()
     ]
-    return examples
 
 
 def scrubber(txt, no_sec=False):
     txt = re.sub("[\\n\\t\\r]+", " ", txt)
     txt = re.sub("\\s{2,}", " ", txt).strip()
     if no_sec:
-        mobj = dd_re.search(txt)
-        if mobj:
+        if mobj := dd_re.search(txt):
             txt = txt.replace(mobj.group(1), "").strip()
     return txt
 
@@ -215,8 +210,7 @@ def unbatch_preds(preds):
       sequence of Dict[str, np.array], with the same keys as preds.
     """
     if not isinstance(preds, dict):
-        for pred in preds:
-            yield pred
+        yield from preds
     else:
         for i in range(_extract_batch_length(preds)):
             yield {key: value[i] for key, value in preds.items()}
@@ -247,12 +241,7 @@ def make_sentences(text, src):
     text = text.replace(PL, PL_SPACE)
     text = text.replace(EO, EO_SPACE)
     sents = [scrubber(sent, no_sec=no_sec) for sent in sent_tokenize(text)]
-    sent_list = list()
-    for sent in sents:
-        if not sent:
-            continue
-        sent_list.append({"src": src, "label": 0, "sentence": sent})
-    return sent_list
+    return [{"src": src, "label": 0, "sentence": sent} for sent in sents if sent]
 
 
 def raw2dict(src_path, glob, key="raw_text"):

@@ -30,7 +30,7 @@ class ExtractRespText(Table):
         super(ExtractRespText, self).__init__(
             input_dir, output, spacy_model, agency_file, glob, True
         )
-        logger.info("input dir : {}".format(input_dir))
+        logger.info(f"input dir : {input_dir}")
         self.train_df = pd.DataFrame(columns=["source", "label", "text"])
 
         # matches 1.2.3., etc. at the start of the text
@@ -39,8 +39,7 @@ class ExtractRespText(Table):
     def scrubber(self, txt):
         txt = re.sub("[\\n\\t\\r]+", " ", txt)
         txt = re.sub("\\s{2,}", " ", txt).strip()
-        mobj = self.dd_re.search(txt)
-        if mobj:
+        if mobj := self.dd_re.search(txt):
             txt = txt.replace(mobj.group(1), "")
         return txt.strip()
 
@@ -53,8 +52,7 @@ class ExtractRespText(Table):
                 yield pos_ex, fname, self.raw_text
 
     def extract_neg_in_doc(self, raw_text, min_len):
-        neg_sentences = list()
-        negs = 0
+        neg_sentences = []
         if "RESPONSIBILITIES" in raw_text:
             prev_text = raw_text.split("RESPONSIBILITIES")[0]
             if prev_text is not None:
@@ -63,7 +61,7 @@ class ExtractRespText(Table):
                     for sent in sent_tokenize(prev_text)
                     if len(sent) > min_len
                 ]
-                negs += len(sents)
+                negs = 0 + len(sents)
                 neg_sentences.extend(sents)
                 logger.info("\tnegative samples : {:>3,d}".format(negs))
         return neg_sentences
@@ -91,9 +89,8 @@ class ExtractRespText(Table):
                 total_neg += len(neg_ex)
                 self._append_df(fname, 0, neg_ex)
             except ValueError as e:
-                logger.exception("offending file name : {}".format(fname))
-                logger.exception("{}: {}".format(type(e), str(e)))
-                pass
+                logger.exception(f"offending file name : {fname}")
+                logger.exception(f"{type(e)}: {str(e)}")
         logger.info("positive samples : {:>6,d}".format(total_pos))
         logger.info("negative samples : {:>6,d}".format(total_neg))
 

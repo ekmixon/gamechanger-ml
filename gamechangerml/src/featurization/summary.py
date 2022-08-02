@@ -73,9 +73,7 @@ class GensimSumm(Summary):
             summary = ""
             print(e)
 
-        if not summary:
-            return None
-        return summary
+        return summary or None
 
 
 class BertExtractiveSumm(Summary):

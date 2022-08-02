@@ -27,7 +27,7 @@ try:
     word_wt = os.path.join(aux_path, "enwiki_vocab_min200.txt")
     assert os.path.isfile(word_wt)
 except (AttributeError, FileExistsError) as e:
-    logger.exception("{}: {}".format(type(e), str(e)), exc_info=True)
+    logger.exception(f"{type(e)}: {str(e)}", exc_info=True)
 
 
 @pytest.fixture(scope="session")

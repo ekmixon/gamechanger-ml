@@ -129,7 +129,7 @@ def generate_precision_recall(all_data, fname):
         precision_list.append(precision)
         recall_list.append(recall)
         plt.plot(precision, recall, label = model_name)
-    
+
     plt.ylim(0, 1)
     plt.xlim(0, 1)
     plt.xlabel("Recall")

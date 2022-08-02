@@ -15,9 +15,7 @@ if __name__ == "__main__":
     )
     logging.basicConfig(level=logging.INFO, format=log_fmt)
 
-    logger.info(
-        "Semantic model assessment script version {}".format(v.__version__)
-    )
+    logger.info(f"Semantic model assessment script version {v.__version__}")
 
     parser = argparse.ArgumentParser(description="Run the assessment script")
     parser.add_argument(

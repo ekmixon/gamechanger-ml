@@ -75,6 +75,6 @@ if __name__ == "__main__":
     save_dir = input(f"Where should the dataset be saved?\t\t")
     print("")
     logger.info(f"Downloading [{dataset}]...")
-    
-    if not any([a == "" for a in [dataset, save_dir]]):
+
+    if "" not in [dataset, save_dir]:
         download_eval_data(dataset, save_dir)

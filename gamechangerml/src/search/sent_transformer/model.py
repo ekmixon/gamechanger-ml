@@ -30,16 +30,11 @@ class SentenceEncoder(object):
 
     def __init__(self, encoder_model=None, use_gpu=False):
 
-        if encoder_model:
-            self.encoder_model = encoder_model
-        else:
-            self.encoder_model = "sentence-transformers/msmarco-distilbert-base-v2"
+        self.encoder_model = (
+            encoder_model or "sentence-transformers/msmarco-distilbert-base-v2"
+        )
 
-        if use_gpu and torch.cuda.is_available():
-            self.use_gpu = use_gpu
-        else:
-            self.use_gpu = False
-
+        self.use_gpu = use_gpu if use_gpu and torch.cuda.is_available() else False
         self.embedder = Embeddings(
             {"method": "transformers", "path": self.encoder_model, "gpu": self.use_gpu}
         )
@@ -67,10 +62,7 @@ class SentenceEncoder(object):
         # Remove temporary file
         os.remove(stream)
 
-        all_text = []
-        for para_id, text, _ in corpus:
-            all_text.append([text, para_id])
-
+        all_text = [[text, para_id] for para_id, text, _ in corpus]
         df = pd.DataFrame(all_text, columns=["text", "paragraph_id"])
 
         embedding_path = os.path.join(index_path, "embeddings.npy")
@@ -170,11 +162,7 @@ class SentenceSearcher(object):
 
     def __init__(self, index_path, sim_model=None):
 
-        if sim_model:
-            self.sim_model = sim_model
-        else:
-            self.sim_model = "valhalla/distilbart-mnli-12-3"
-
+        self.sim_model = sim_model or "valhalla/distilbart-mnli-12-3"
         self.embedder = Embeddings()
         self.embedder.load(index_path)
         self.similarity = Similarity(self.sim_model)
@@ -203,9 +191,6 @@ class SentenceSearcher(object):
 
         results = []
         for idx, score in self.similarity(query, doc_texts):
-            doc = {}
-            doc["score"] = score
-            doc["id"] = doc_ids[idx]
-            doc["text"] = doc_texts[idx]
+            doc = {"score": score, "id": doc_ids[idx], "text": doc_texts[idx]}
             results.append(doc)
         return results

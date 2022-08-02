@@ -10,6 +10,7 @@ optional arguments:
   -q QUERY_FILE, --query-file QUERY_FILE
                         text file containing one sample query per line
 """
+
 import logging
 import os.path
 import sys
@@ -51,7 +52,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     if not os.path.isdir(args.index_dir):
-        logger.fatal("{} is not a directory".format(args.model_dir))
+        logger.fatal(f"{args.model_dir} is not a directory")
         logger.fatal("You may need to first build the search index")
         logger.fatal("See the README in the query_expansion directory")
         logger.fatal("for details.")
@@ -74,7 +75,7 @@ if __name__ == "__main__":
             )
             logger.debug("index loaded")
     except FileNotFoundError as e:
-        logger.fatal("{}: {}".format(type(e), str(e)), exc_info=True)
+        logger.fatal(f"{type(e)}: {str(e)}", exc_info=True)
         raise
 
     z_vec_errors = 0
@@ -86,7 +87,7 @@ if __name__ == "__main__":
         for ex_term in expanded_:
             chk = [is_zero_vector(token.vector) for token in nlp(ex_term)]
             if True in chk:
-                logger.error("{} zero vector in {}".format(q_str, ex_term))
+                logger.error(f"{q_str} zero vector in {ex_term}")
                 z_vec_errors += 1
             else:
                 logger.info("{:>45s} -> {}".format(q_str, expanded_))

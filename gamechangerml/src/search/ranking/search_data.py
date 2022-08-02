@@ -22,10 +22,13 @@ def ps_connect():
     Returns:
         postgres connection object
     """
-    conn = ps.connect(
-        user=PG_USER, password=PG_PASS, host=PG_HOST, port=PG_PORT, database=PG_DB
+    return ps.connect(
+        user=PG_USER,
+        password=PG_PASS,
+        host=PG_HOST,
+        port=PG_PORT,
+        database=PG_DB,
     )
-    return conn
 
 
 def get_searchLogs(from_date: str):
@@ -39,16 +42,14 @@ def get_searchLogs(from_date: str):
     cursor = conn.cursor()
     query = f"SELECT * FROM gc_history WHERE run_at >= '{from_date}'::date ORDER BY run_at DESC"
     cursor.execute(query)
-    resp = cursor.fetchall()
-    return resp
+    return cursor.fetchall()
 
 def get_entities():
     conn = ps_connect()
     cursor = conn.cursor()
-    query = f"SELECT * FROM gc_entities"
+    query = "SELECT * FROM gc_entities"
     cursor.execute(query)
-    resp = cursor.fetchall()
-    return resp
+    return cursor.fetchall()
 
 
 
@@ -58,8 +59,7 @@ def get_annotationLogs(from_date: str):
     cursor = conn.cursor()
     query = f"SELECT * FROM gc_annotations WHERE run_at >= '{from_date}'::date ORDER BY run_at DESC"
     cursor.execute(query)
-    resp = cursor.fetchall()
-    return resp
+    return cursor.fetchall()
 
 
 def _logs_toDf(searchLog: list):
@@ -94,9 +94,8 @@ def get_top_keywords(search_df: pd.DataFrame()):
         split_word = re.split(" AND | OR", log.search, flags=re.IGNORECASE)
         for terms in split_word:
             terms = _preprocess_str(terms)
-            if len(terms) > 0:
-                if terms not in ignore_words:
-                    cnt[terms] += 1
+            if len(terms) > 0 and terms not in ignore_words:
+                cnt[terms] += 1
 
     df = pd.DataFrame(columns=["keywords", "amt"], data=cnt.items())
     df = score_popularity(df)

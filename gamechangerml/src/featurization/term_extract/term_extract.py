@@ -70,9 +70,7 @@ class TermExtractor(object):
             self.nlp = en_core_web_sm.load(disable=["ner", "parser"])
         self.matcher = Matcher(self.nlp.vocab)
 
-        logger.info(
-            "{} version {}".format(self.__class__.__name__, self.__version__)
-        )
+        logger.info(f"{self.__class__.__name__} version {self.__version__}")
 
     @staticmethod
     def _word_length(string):
@@ -128,8 +126,7 @@ class TermExtractor(object):
             for ent in doc.ents
             if ent.label_ in TermExtractor.entities
         ]
-        ent_counter = Counter({ent: 1 for ent in ents})
-        return ent_counter
+        return Counter({ent: 1 for ent in ents})
 
     @staticmethod
     def gen_json(data_dir=Config.DATA_DIR):
@@ -151,7 +148,7 @@ class TermExtractor(object):
 
         """
         if not os.path.isdir(data_dir):
-            raise ValueError("invalid data_dir, got {}".format(data_dir))
+            raise ValueError(f"invalid data_dir, got {data_dir}")
 
         try:
             for file_ in os.listdir(data_dir):
@@ -161,9 +158,9 @@ class TermExtractor(object):
                     if "text" in j_doc:
                         yield j_doc["text"]
                     else:
-                        logger.warning("no 'text' key in {}".format(file_))
+                        logger.warning(f"no 'text' key in {file_}")
         except (IOError, json.JSONDecodeError, RuntimeError) as e:
-            logger.exception("{}: {}".format(type(e), str(e)), exc_info=True)
+            logger.exception(f"{type(e)}: {str(e)}", exc_info=True)
             raise
 
     def generate_counts(self, data_dir=Config.DATA_DIR):
@@ -185,12 +182,11 @@ class TermExtractor(object):
     @staticmethod
     def _make_output(final_count, min_freq):
         by_key = dict(sorted(final_count.items(), key=itemgetter(0)))
-        suggests = [
+        return [
             {"input": term, "weight": weight}
             for term, weight in by_key.items()
             if weight >= min_freq
         ]
-        return suggests
 
     def count_from_dir(self, max_files=None, data_dir=Config.DATA_DIR):
         """
@@ -206,7 +202,7 @@ class TermExtractor(object):
         Returns:
             dict
         """
-        final_counter = dict()
+        final_counter = {}
         f_count = 0
 
         for tech_counts in self.generate_counts(data_dir):
@@ -214,7 +210,7 @@ class TermExtractor(object):
             f_count += 1
             if max_files is not None and f_count == max_files:
                 break
-            if f_count in [1, 5, 10] or f_count % 25 == 0:
+            if f_count in {1, 5, 10} or f_count % 25 == 0:
                 logger.debug("processed {:>5,}".format(f_count))
 
         logger.debug("total files processed : {:,}".format(f_count))

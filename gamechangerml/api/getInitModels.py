@@ -16,7 +16,7 @@ from gamechangerml.src.utilities.utils import (
 def poll_alive():
     while True:
         sleep(3)
-        print("{} getInitModels.py still running...".format(datetime.now()))
+        print(f"{datetime.now()} getInitModels.py still running...")
 
 
 if __name__ == "__main__":

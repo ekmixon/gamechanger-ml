@@ -14,15 +14,12 @@ def lookup_wiki_summary(query):
 if __name__ == '__main__':
 
     parser = argparse.ArgumentParser(description="Getting entity descriptions")
-    
+
     parser.add_argument("--filepath", "-p", dest="filepath", help="path to csv with entities")
 
     args = parser.parse_args()
 
-    if args.filepath:
-        entities_filepath = args.filepath
-    else:
-        entities_filepath = '../data/combined_entities.csv'
+    entities_filepath = args.filepath or '../data/combined_entities.csv'
     df = pd.read_csv(entities_filepath)
     df['information'] = df['entity_name'].apply(lambda x: lookup_wiki_summary(x))
     df['information_source'] = "Wikipedia"

@@ -10,6 +10,7 @@ optional arguments:
                         corpus directory
 
 """
+
 import logging
 import os
 import re
@@ -23,8 +24,7 @@ from gamechangerml.src.utilities.timer import Timer
 
 logger = logging.getLogger(__name__)
 
-re_list = list()
-re_list.append(re.compile("^##\\S+"))
+re_list = [re.compile("^##\\S+")]
 re_list.append(re.compile("^(?:title|section|chapter)\\s?\\d+?$", re.I))
 
 
@@ -75,7 +75,7 @@ def main(method, corpus_dir):
 
     for k in sorted(entity_dict.keys()):
         lbl, doc_id = k.split("~")
-        logger.info("{}: {}".format(lbl, doc_id))
+        logger.info(f"{lbl}: {doc_id}")
         entity_list = sorted(list(entity_dict[k]))
         logger.info(pformat(entity_list))
 

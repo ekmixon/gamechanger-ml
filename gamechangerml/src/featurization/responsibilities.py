@@ -5,7 +5,7 @@ import pandas as pd
 import nltk
 from gamechangerml import NLTK_DATA_PATH, DATA_PATH
 
-if not NLTK_DATA_PATH in nltk.data.path:
+if NLTK_DATA_PATH not in nltk.data.path:
     nltk.data.path.append(NLTK_DATA_PATH)
 
 import ssl
@@ -47,12 +47,11 @@ def get_responsibilities(text, agencies=None):
             else:
                 check = False
                 break
-        if new.split(" ")[0] == "SECTION":
-            if "RESPONSIBILITIES" in new:
-                prev = (
-                    new.split("RESPONSIBILITIES", 1)[0].strip().split(" ")[-2:]
-                )
-                new = new.split("RESPONSIBILITIES", 1)[1].lstrip()
+        if new.split(" ")[0] == "SECTION" and "RESPONSIBILITIES" in new:
+            prev = (
+                new.split("RESPONSIBILITIES", 1)[0].strip().split(" ")[-2:]
+            )
+            new = new.split("RESPONSIBILITIES", 1)[1].lstrip()
         if check:
             prev = " ".join(prev)
             prev = re.sub("\n", " ", prev)
@@ -66,12 +65,7 @@ def get_responsibilities(text, agencies=None):
                 it = prev.split(" ")[-2]
             else:
                 return {}
-            parsed = parse(new.split(it)[0])
-            if parsed:
-                extracted = extract(parsed, agencies)
-                return extracted
-            else:
-                return {}
+            return extract(parsed, agencies) if (parsed := parse(new.split(it)[0])) else {}
 
 
 def parse(ptext):
@@ -111,8 +105,6 @@ def extract(parsed, agencies):
     extracted = {}
     for k in range(len(parsed)):
         agency = None
-        responsibilities = []
-
         new = nltk.tokenize.sent_tokenize(re.sub("\n", " ", parsed[k]))
         if not new:
             continue
@@ -122,9 +114,7 @@ def extract(parsed, agencies):
             for a in agencies:
                 if a in entity.lower():
                     agency = a
-        for i in range(1, len(new)):
-            if " " in new[i]:
-                responsibilities.append(new[i])
+        responsibilities = [new[i] for i in range(1, len(new)) if " " in new[i]]
         extracted[entity] = {
             "Agency": agency,
             "Responsibilities": responsibilities,

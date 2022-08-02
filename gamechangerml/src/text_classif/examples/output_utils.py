@@ -35,7 +35,7 @@ def get_agency(df, spacy_model):
 
         flat_entities = remove_articles(flat_entities)
         flat_entities = match_parenthesis(flat_entities)
-        flat_entities = "|".join(i for i in set(flat_entities))
+        flat_entities = "|".join(set(flat_entities))
         all_docs.append(flat_entities)
 
     df["agencies"] = all_docs

@@ -14,7 +14,7 @@ def test_json_in(query_results_ten):
 
 def test_query_in(query_results_ten, model_name):
     query = query_results_ten["query"]
-    logger.info("query : {}".format(query))
+    logger.info(f"query : {query}")
     sparse_reader = SparseReader(model_name=model_name)
     assert sparse_reader
 
@@ -26,7 +26,7 @@ def test_query_in(query_results_ten, model_name):
 
 def test_bad_query(bad_query_results, model_name):
     query = bad_query_results["query"]
-    logger.info("query : {}".format(query))
+    logger.info(f"query : {query}")
     sparse_reader = SparseReader(model_name=model_name)
     assert sparse_reader
 

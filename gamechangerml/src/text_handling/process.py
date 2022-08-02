@@ -44,8 +44,7 @@ def topic_processing(text: str, phrase_model: object):
         phrase_model (object): any model that takes in a tokenized text list as an indexed arg and
             returns a tokenized list with with phrases combined. (See Gensims Phrases/Phraser model).
     """
-    tokens = phrase_model[simple_preprocess(text, min_len=4, max_len=15)]
-    return tokens
+    return phrase_model[simple_preprocess(text, min_len=4, max_len=15)]
 
 
 class bert_tokenizer(object):

@@ -115,13 +115,12 @@ class D2V(object):
 
     def vectorize(self, tokenized_text):
         self.model.random.seed(123)
-        vec = self.model.infer_vector(
+        return self.model.infer_vector(
             tokenized_text,
             alpha=self.model.alpha,
             min_alpha=self.model.min_alpha,
             epochs=self.model.epochs,
         )
-        return vec
 
     def _format_returns(self, sim, num_docs, max_para):
         """
@@ -137,8 +136,9 @@ class D2V(object):
             element = element.split("_")
             doc_id = "_".join(element[:-1])
             paragraph_num = element[-1]
-            if num_docs_count < num_docs or doc_id in result_dict:
-                if len(result_dict[doc_id]) < max_para:
-                    result_dict[doc_id].append((paragraph_num, score))
+            if (num_docs_count < num_docs or doc_id in result_dict) and len(
+                result_dict[doc_id]
+            ) < max_para:
+                result_dict[doc_id].append((paragraph_num, score))
             num_docs_count = len(result_dict)
         return result_dict

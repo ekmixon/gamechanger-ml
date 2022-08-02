@@ -31,7 +31,7 @@ try:
     assert os.path.isdir(test_data_dir)
     assert os.path.isdir(test_index_dir)
 except (AttributeError, FileExistsError) as e:
-    logger.exception("{}: {}".format(type(e), str(e)), exc_info=True)
+    logger.exception(f"{type(e)}: {str(e)}", exc_info=True)
 
 
 @pytest.fixture(scope="session")

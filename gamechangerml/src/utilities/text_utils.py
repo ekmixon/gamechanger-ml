@@ -53,7 +53,7 @@ def simple_clean(text):
         text = translate_to_ascii_string(text)
         return text.strip()
     except UnicodeDecodeError as e:
-        logger.exception("{}: {}".format(type(e), str(e)), exc_info=True)
+        logger.exception(f"{type(e)}: {str(e)}", exc_info=True)
         raise
 
 
@@ -75,10 +75,7 @@ def ratio_caps(text: str, ratio: float) -> bool:
     ##TO DO: better way to clean. placeholder for removing DISTRIBUTION
     STATEMENTS/jargon fragments
     """
-    if len(re.findall(r"[A-Z]", text)) / len(text.split()) < ratio:
-        return True
-    else:
-        return False
+    return len(re.findall(r"[A-Z]", text)) / len(text.split()) < ratio
 
 
 def filter_sentences(text: str, token_len: int = 5, ratio: float = 1.5) -> str:
@@ -124,15 +121,13 @@ def summary_clean(text: str, min_par_len=15) -> str:
                 newtext.extend(g)
         text = "".join(newtext)  # remove excess punctuation
         pars = re.split("\r?\n(?:\\s*\r?\n)+", text)
-        good_pars = []
-        # get only paragraphs of significant length
-        for paragraph in pars:
-            if len(paragraph.split()) > min_par_len:
-                # paragraph = filter_sentences(paragraph)
-                good_pars.append(paragraph)
+        good_pars = [
+            paragraph
+            for paragraph in pars
+            if len(paragraph.split()) > min_par_len
+        ]
 
-        final_text = "\n".join(good_pars)
-        return final_text
+        return "\n".join(good_pars)
     except UnicodeDecodeError:
         raise
 
@@ -153,7 +148,7 @@ def clean_text(doc_text: str) -> str:
 
     text = doc_text.replace("\n", " ")
     text = re.sub(r"\s+", " ", text)
-    remove = punctuation + "”“"
+    remove = f"{punctuation}”“"
     remove = remove.replace(".", "")
 
     text = text.translate({ord(i): None for i in remove})

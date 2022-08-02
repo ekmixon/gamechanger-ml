@@ -75,7 +75,7 @@ def preprocess(
 
 def name_outputs(corpus_files):
 
-    today = datetime.today().strftime("%Y-%m-%d")
+    today = datetime.now().strftime("%Y-%m-%d")
     name = "./corpus_stats_" + today + "_" + str(len(corpus_files))
 
     return name + ".csv", name + ".txt"

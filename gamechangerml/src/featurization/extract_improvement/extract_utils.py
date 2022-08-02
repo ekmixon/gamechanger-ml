@@ -21,16 +21,13 @@ def extract_entities(
     """
     cleaned_text = simple_clean(document)
     doc = spacy_model(cleaned_text)
-    entities = {}
-
-    for i in entity_types:
-        entities[i] = []
+    entities = {i: [] for i in entity_types}
 
     for entity in doc.ents:
-        if entity.label_ in entities.keys():
+        if entity.label_ in entities:
             entities[entity.label_].append(entity.text)
 
-    for i in entities.keys():
+    for i in entities:
         entities[i] = list(set(entities[i]))
 
     return entities
@@ -49,9 +46,7 @@ def create_list_from_dict(mydict):
     outputs = []
     for k, v in mydict.items():
         if len(v) > 0:
-            for i in v:
-                outputs.append(i)
-
+            outputs.extend(iter(v))
     return outputs
 
 
@@ -67,9 +62,9 @@ def remove_articles(entities_list):
     """
     text_list = entities_list
     for i, v in enumerate(text_list):
-        if v[0:4] == "the ":
+        if v[:4] == "the ":
             text_list[i] = v.replace("the ", "")
-        elif v[0:4] == "The ":
+        elif v[:4] == "The ":
             text_list[i] = v.replace("The ", "")
 
     return text_list
@@ -102,20 +97,19 @@ def match_parenthesis(entities_list):
 
     for i, v in enumerate(text_list):
         clean_text = remove_hanging_parenthesis(v)
-        if "(" in clean_text:
-            if ")" not in clean_text:
-                paren_split = clean_text.split("(")
-                paren_add = paren_split[1].split(" ", 1)
-                if len(paren_add) > 1:
-                    clean_text = (
-                        paren_split[0]
-                        + "("
-                        + paren_add[0]
-                        + ") "
-                        + paren_add[1]
-                    )
-                else:
-                    clean_text = paren_split[0] + "(" + paren_add[0] + ") "
+        if "(" in clean_text and ")" not in clean_text:
+            paren_split = clean_text.split("(")
+            paren_add = paren_split[1].split(" ", 1)
+            if len(paren_add) > 1:
+                clean_text = (
+                    paren_split[0]
+                    + "("
+                    + paren_add[0]
+                    + ") "
+                    + paren_add[1]
+                )
+            else:
+                clean_text = f"{paren_split[0]}({paren_add[0]}) "
         text_list[i] = clean_text
 
     text_list = [i for i in text_list if i]

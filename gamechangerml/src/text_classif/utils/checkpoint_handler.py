@@ -50,25 +50,20 @@ def checkpoint_meta(chkpt_path, version_in):
 
         c_version = chkpt_stats["config"]["version"]
         log_v = False
-        if version_in is not None:
-            if version.parse(c_version) < version.parse(version_in):
-                msg = (
-                    "Checkpoint was created with v{}, you're using v{}".format(
-                        c_version, version_in
-                    )
-                )  # noqa
-                msg1 = "...your mileage may vary."
-                logger.warning(msg)
-                logger.warning(msg1)
-                log_v = True
+        if version_in is not None and version.parse(c_version) < version.parse(
+            version_in
+        ):
+            msg = f"Checkpoint was created with v{c_version}, you're using v{version_in}"
+            msg1 = "...your mileage may vary."
+            logger.warning(msg)
+            logger.warning(msg1)
+            log_v = True
         ts_ = datetime.datetime.fromtimestamp(ts)
         val_loss = chkpt_stats["avg_val_loss"]
-        logger.info(
-            "  checkpoint time : {}".format(ts_.strftime("%Y-%m-%d %H:%M:%S"))
-        )
-        logger.info("  package version : {}".format(c_version))
+        logger.info(f'  checkpoint time : {ts_.strftime("%Y-%m-%d %H:%M:%S")}')
+        logger.info(f"  package version : {c_version}")
         if log_v:
-            logger.info("  current version : {}".format(version_in))
-        logger.info("            epoch : {}".format(chkpt_stats["epoch"]))
+            logger.info(f"  current version : {version_in}")
+        logger.info(f'            epoch : {chkpt_stats["epoch"]}')
         logger.info("     avg val loss : {:0.3f}".format(val_loss))
         logger.info("              mcc : {:0.3f}".format(chkpt_stats["mcc"]))

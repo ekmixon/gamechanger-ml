@@ -64,11 +64,11 @@ class SparseReader(object):
         if use_gpu:
             raise NotImplementedError("GPU is not supported at this time")
 
-        logger.info("{} {}".format(self.__class__.__name__, self.__version__))
+        logger.info(f"{self.__class__.__name__} {self.__version__}")
         logger.info("instantiating base reader")
-        logger.info("         model_name : {}".format(model_name))
-        logger.info("context_window_size : {}".format(context_window_size))
-        logger.info("           use__gpu : {}".format(use_gpu))
+        logger.info(f"         model_name : {model_name}")
+        logger.info(f"context_window_size : {context_window_size}")
+        logger.info(f"           use__gpu : {use_gpu}")
 
         try:
             self.hf_nlp = pipeline(
@@ -78,7 +78,7 @@ class SparseReader(object):
                 device=-1,
             )
         except OSError as e:
-            logger.exception("{}: {}".format(type(e), str(e)), exc_info=True)
+            logger.exception(f"{type(e)}: {str(e)}", exc_info=True)
             raise e
 
     @staticmethod
@@ -90,7 +90,7 @@ class SparseReader(object):
             doc_ids = [d["id"] for d in query_results["documents"]]
             return questions, docs, doc_ids
         except KeyError as e:
-            logger.exception("{}: {}".format(type(e), str(e)), exc_info=True)
+            logger.exception(f"{type(e)}: {str(e)}", exc_info=True)
             raise e
 
     def predict(self, query_results, top_k=None):
@@ -115,12 +115,12 @@ class SparseReader(object):
         """
 
         questions, docs, doc_ids = self._unpack_json(query_results)
-        logger.info("n questions: {}".format(len(questions)))
-        logger.info("n docs     : {}".format(len(docs)))
+        logger.info(f"n questions: {len(questions)}")
+        logger.info(f"n docs     : {len(docs)}")
 
         answers = self.hf_nlp(question=questions, context=docs, topk=1)
 
-        h = list()
+        h = []
         for idx, ans in enumerate(answers):
             ctx = self._make_context(ans["start"], ans["end"], docs[idx])
             doc_dict = {
@@ -132,21 +132,19 @@ class SparseReader(object):
             h.append((ans["score"], doc_dict))
         answers = sorted(h, key=lambda tup: tup[0], reverse=True)
         answers = [ans for _, ans in answers]
-        logger.info(
-            "Length of answers from transformer nlp: {}".format(len(answers)))
+        logger.info(f"Length of answers from transformer nlp: {len(answers)}")
 
         if top_k is None:
             return self._make_json(questions[0], answers)
         elif int(top_k) > 0:
             return self._make_json(questions[0], answers[: int(top_k)])
         else:
-            logger.warning("illegal value for top_k; got {}".format(top_k))
+            logger.warning(f"illegal value for top_k; got {top_k}")
             return self._make_json(questions[0], answers)
 
     @staticmethod
     def _make_json(question, answers):
-        dict_out = {"query": question, "answers": answers}
-        return dict_out
+        return {"query": question, "answers": answers}
 
     def _make_context(self, start, end, doc_text):
         context_start = max(0, start - self.context_window_size)

@@ -116,10 +116,7 @@ class AblationStudy(object):
                     best_rank = ranks[answer_key]
                 else:
                     best_rank = min(best_rank, ranks[answer_key])
-        if best_rank is None:
-            return -1
-        else:
-            return best_rank
+        return -1 if best_rank is None else best_rank
 
     def bar_plot_diff_10(self, a_count, b_count):
         """
@@ -146,7 +143,7 @@ class AblationStudy(object):
                 new_a_count.append(a_count[i])
             else:
                 new_a_count.append(0)
-            
+
             if i in b_count:
                 new_b_count.append(b_count[i])
             else:
@@ -183,10 +180,10 @@ class AblationStudy(object):
         x = list(range(1, 101))
         net_scores = []
         for i in x:
-            a_better = diff_count[-i] if -i in diff_count else 0
-            b_better = diff_count[i] if i in diff_count else 0
+            a_better = diff_count.get(-i, 0)
+            b_better = diff_count.get(i, 0)
             net_scores.append(a_better - b_better)
-        
+
         net_max = max(net_scores)
         net_min = min(net_scores)
         abs_max = max(abs(net_max), abs(net_min))
@@ -211,7 +208,7 @@ class AblationStudy(object):
         plt.title("Net Improvement Scores")
         plt.xlabel("Score Improvement")
         plt.ylabel("Net Improvement Occurence")
-        
+
         plt.xlim(-2, 102)
         plt.ylim((-abs_max, abs_max))
         plt.xticks(x)
@@ -252,7 +249,7 @@ class AblationStudy(object):
                 new_a_count.append(a_count[i])
             else:
                 new_a_count.append(0)
-            
+
             if i in b_count:
                 new_b_count.append(b_count[i])
             else:
@@ -263,7 +260,7 @@ class AblationStudy(object):
 
         for text_x, text_y in zip(x_a, new_a_count):
             plt.text(text_x - 0.15, text_y + 50, text_y, va = "center", size = 8)
-        
+
         for text_x, text_y in zip(x_b, new_b_count):
             plt.text(text_x - 0.15, text_y + 50, text_y, va = "center", size = 8)
 
@@ -290,7 +287,7 @@ class AblationStudy(object):
         a_rank = scores[self.model_a_name].tolist()
         b_rank = scores[self.model_b_name].tolist()
 
-        pairs = [(i, j) for i, j in zip(a_rank, b_rank)]
+        pairs = list(zip(a_rank, b_rank))
         pair_count = dict(Counter(pairs))
 
         raw_array = np.zeros((100, 100))
@@ -306,7 +303,7 @@ class AblationStudy(object):
                 plt.text(i - 0.25, j - 0.25, int(raw_array[j-1, i-1]), va = "center")
         plt.plot([-1, 100], [-1, 100])
 
-        ticks = [i for i in range(1, 21)]
+        ticks = list(range(1, 21))
 
         plt.xticks(ticks)
         plt.yticks(ticks)

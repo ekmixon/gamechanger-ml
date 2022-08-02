@@ -22,38 +22,26 @@ def sif_embedding(query_str, nlp, word_wt, strict=False):
         logger.warning("empty text")
         return zero_array
 
-    wt_matrix = list()
-    tokens = list()
-    token_objs = [t for t in nlp(q_lower)]
+    wt_matrix = []
+    tokens = []
+    token_objs = list(nlp(q_lower))
 
     if len(token_objs) == 1:
-        embed = (token_objs[0]).vector
-        return embed
+        return (token_objs[0]).vector
 
     for t in token_objs:
         if t.is_space:
             continue
         vec, oov = _embedding(t)
-        if oov:
-            # logger.warning(
-            #     "out of vocabulary : {:25s}  {}".format(t.text, query_str)
-            # )
-            if strict:
-                # logger.warning("returning zero vector for {}".format(t.orth_))
-                return zero_array
-        if t in word_wt:
-            wt = word_wt[t.lower_]
-        else:
-            wt = 1.0
+        if oov and strict:
+            # logger.warning("returning zero vector for {}".format(t.orth_))
+            return zero_array
+        wt = word_wt[t.lower_] if t in word_wt else 1.0
         wt_matrix.append(vec * wt)
         tokens.append(t)
 
-    if wt_matrix:
-        wt_mtx_ = np.array(wt_matrix)
-        avg_vec = wt_mtx_.sum(axis=0) / np.float32(wt_mtx_.shape[0])
-        if is_zero_vector(avg_vec):
-            return zero_array
-        normed_vec = l2_norm_vector(avg_vec)
-        return normed_vec
-    else:
+    if not wt_matrix:
         return zero_array
+    wt_mtx_ = np.array(wt_matrix)
+    avg_vec = wt_mtx_.sum(axis=0) / np.float32(wt_mtx_.shape[0])
+    return zero_array if is_zero_vector(avg_vec) else l2_norm_vector(avg_vec)

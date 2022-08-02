@@ -160,14 +160,8 @@ if __name__ == "__main__":
     args = parser.parse_args()
     if args.nameflag:
         modelname = f"{modelname}-{args.nameflag}"
-    if args.save == "True" or args.save == "true":
-        save = True
-    else:
-        save = False
-    if args.validate:
-        validate = True
-    else:
-        validate = False
+    save = args.save in ["True", "true"]
+    validate = bool(args.validate)
     model_dest = args.model_dest
     if not model_dest:
         model_dest = DefaultConfig.LOCAL_MODEL_DIR

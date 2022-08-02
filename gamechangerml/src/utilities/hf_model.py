@@ -15,16 +15,15 @@ def ner_models():
         )
         return tokenizer, model
     except (EnvironmentError, ValueError) as e:
-        logger.exception("{}: {}".format(type(e), str(e)), exc_info=True)
+        logger.exception(f"{type(e)}: {str(e)}", exc_info=True)
         raise
 
 
 def ner_pipeline():
     tokenizer, model = ner_models()
-    hf_ner = pipeline(
+    return pipeline(
         "ner",
         model=model,
         tokenizer=tokenizer,
         grouped_entities=True,
     )
-    return hf_ner

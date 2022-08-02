@@ -53,14 +53,14 @@ class QAResponse():
         return query, context, simple_context
 
     def send_qa(self):
-    
+
         start = time.perf_counter()
 
         post = {
             "query": self.query,
             "search_context": self.simple_context
         }
-        
+
         data = json.dumps(post).encode("utf-8")
         url = 'http://localhost:5000/questionAnswer'
         headers = {'Content-Type': 'application/json'}
@@ -105,8 +105,7 @@ if __name__ == "__main__":
     for file in onlyfiles:
         try:
             qa_response = QAResponse(file, args.context_type)
-            count = 0
-            for answer in qa_response.answers:
+            for count, answer in enumerate(qa_response.answers):
                 results = [
                     qa_response.query,
                     answer['text'].replace(',', ''),
@@ -121,7 +120,6 @@ if __name__ == "__main__":
 
                 row = "\n" + ",".join(results)
                 results_csv.write(row)
-                count += 1
         except:
         	   print(f"Error with {file}")
 

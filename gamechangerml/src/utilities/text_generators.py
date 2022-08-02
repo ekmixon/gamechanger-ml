@@ -27,9 +27,9 @@ def gen_json_mult_keys(data_dir, keys=("title", "f_name")):
 
     """
     if not os.path.isdir(data_dir):
-        raise ValueError("invalid data_dir, got {}".format(data_dir))
+        raise ValueError(f"invalid data_dir, got {data_dir}")
 
-    logger.info("processing corpus dir: {}".format(data_dir))
+    logger.info(f"processing corpus dir: {data_dir}")
 
     json_glob = "*.json"
 
@@ -42,14 +42,13 @@ def gen_json_mult_keys(data_dir, keys=("title", "f_name")):
         for f_name in file_list:
             with open(os.path.join(data_dir, f_name)) as fp:
                 json_doc = json.load(fp)
-                values = [json_doc[key] for key in keys if key in json_doc]
-                yield values
-            # if key in json_doc:
-            #     yield json_doc[key]
-            # else:
-            #     logger.warning("no {} in {}".format(key, f_name))
+                yield [json_doc[key] for key in keys if key in json_doc]
+                    # if key in json_doc:
+                    #     yield json_doc[key]
+                    # else:
+                    #     logger.warning("no {} in {}".format(key, f_name))
     except (IOError, json.JSONDecodeError, RuntimeError) as e:
-        logger.exception("{}: {}".format(type(e), str(e)), exc_info=True)
+        logger.exception(f"{type(e)}: {str(e)}", exc_info=True)
         raise
 
 
@@ -74,9 +73,9 @@ def gen_json(data_dir, key="pages"):
 
     """
     if not os.path.isdir(data_dir):
-        raise ValueError("invalid data_dir, got {}".format(data_dir))
+        raise ValueError(f"invalid data_dir, got {data_dir}")
 
-    logger.info("processing corpus dir: {}".format(data_dir))
+    logger.info(f"processing corpus dir: {data_dir}")
 
     json_glob = "*.json"
 
@@ -92,9 +91,9 @@ def gen_json(data_dir, key="pages"):
             if key in json_doc:
                 yield json_doc[key]
             else:
-                logger.warning("no {} in {}".format(key, f_name))
+                logger.warning(f"no {key} in {f_name}")
     except (IOError, json.JSONDecodeError, RuntimeError) as e:
-        logger.exception("{}: {}".format(type(e), str(e)), exc_info=True)
+        logger.exception(f"{type(e)}: {str(e)}", exc_info=True)
         raise
 
 
@@ -120,9 +119,6 @@ def child_doc_gen(doc_gen, child_type="page", key="p_raw_text"):
     for child_items in doc_gen:
         for child_item in child_items:
             if child_item[type_key] == child_type:
-                if id_ in child_item:
-                    f_name = child_item[id_]
-                else:
-                    f_name = "NA"
+                f_name = child_item[id_] if id_ in child_item else "NA"
                 text = child_item[key]
                 yield text, f_name

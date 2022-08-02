@@ -32,4 +32,4 @@ class DistilBertClassifier(Classifier):
         self.tokenizer = DistilBertTokenizer.from_pretrained(
             self.cfg.model_name, do_lower_case=True
         )
-        logger.info("model is loaded : {}".format(self.cfg.model_name))
+        logger.info(f"model is loaded : {self.cfg.model_name}")

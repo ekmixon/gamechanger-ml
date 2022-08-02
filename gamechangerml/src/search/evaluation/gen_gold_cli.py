@@ -89,7 +89,7 @@ def main(query_dir, corpus_dir, output_file):
             working_pairs[query].append(document)
 
     if output_file is not None:
-        if len(working_pairs) > 0:
+        if working_pairs:
             logging.info(f"Saving matched documents to {output_file}")
             with open(output_file, "w") as fp:
                 json.dump(dict(working_pairs), fp)

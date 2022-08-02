@@ -23,11 +23,7 @@ class LocalCorpus(object):
         self.verbose = verbose
 
     def __iter__(self):
-        if self.verbose:
-            iterator = tqdm(self.file_list)
-        else:
-            iterator = self.file_list
-
+        iterator = tqdm(self.file_list) if self.verbose else self.file_list
         for file_name in iterator:
             doc = self._get_doc(file_name)
             paragraphs = [p["par_raw_text_t"] for p in doc["paragraphs"]]

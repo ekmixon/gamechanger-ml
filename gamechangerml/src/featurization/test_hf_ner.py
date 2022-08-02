@@ -14,9 +14,7 @@ import torch
 
 def load_text(corpus_dir):
     if not os.path.isdir(corpus_dir):
-        raise FileNotFoundError(
-            "directory not found; got {}".format(corpus_dir)
-        )
+        raise FileNotFoundError(f"directory not found; got {corpus_dir}")
     return ner_dir(corpus_dir)
 
 
@@ -24,8 +22,7 @@ def load_text(corpus_dir):
 def ner_dir(corpus_dir):
     doc_gen = gen_json(corpus_dir)
     for text, f_name in child_doc_gen(doc_gen):
-        text = simple_clean(text)
-        yield text
+        yield simple_clean(text)
 
 
 if __name__ == "__main__":

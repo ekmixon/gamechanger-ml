@@ -11,11 +11,9 @@ logger = logging.getLogger(__name__)
 
 
 def _predict_docs(input_dicts, predictor, max_seq_len, batch_size):
-    adder = 0
-    if len(input_dicts) % batch_size != 0:
-        adder = 1
+    adder = 1 if len(input_dicts) % batch_size != 0 else 0
     batches = len(input_dicts) // batch_size + adder
-    out_list = list()
+    out_list = []
     start = time.time()
     for output in tqdm(
         predictor.predict(
@@ -29,10 +27,7 @@ def _predict_docs(input_dicts, predictor, max_seq_len, batch_size):
         out_list.extend(output)
 
     elapsed = time.time() - start
-    if len(out_list) > 0:
-        rate = elapsed / len(out_list)
-    else:
-        rate = 0.0
+    rate = elapsed / len(out_list) if out_list else 0.0
     logger.info("       time : {:}".format(cu.format_time(elapsed)))
     logger.info("time / text : {:>6.3f} secs".format(rate))
     return out_list
@@ -77,13 +72,13 @@ def predict_glob(
 
     """
     if not os.path.isdir(data_path):
-        raise ValueError("no directory named '{}'".format(data_path))
+        raise ValueError(f"no directory named '{data_path}'")
     if not 128 <= max_seq_len <= 512:
-        raise ValueError("invalid max_seq_len; got {}".format(max_seq_len))
+        raise ValueError(f"invalid max_seq_len; got {max_seq_len}")
     if batch_size < 8:
-        raise ValueError("invalid batch_size; got {}".format(batch_size))
+        raise ValueError(f"invalid batch_size; got {batch_size}")
     if not glob.strip():
-        raise ValueError("invalid file glob; got '{}'".format(glob))
+        raise ValueError(f"invalid file glob; got '{glob}'")
     if not os.path.isfile(os.path.join(model_path_name, "config.json")):
         raise FileNotFoundError("model_path_name has no 'config.json'")
 

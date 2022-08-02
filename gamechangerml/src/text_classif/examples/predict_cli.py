@@ -73,13 +73,13 @@ def main(
 
     """
     if not os.path.isfile(data_file):
-        msg = "not found: {}".format(data_file)
+        msg = f"not found: {data_file}"
         logger.exception(msg)
         raise FileNotFoundError(msg)
 
     initialize_logger(to_file=False, log_name="none")
 
-    out_list = list()
+    out_list = []
     input_dicts = cu.load_data(data_file, n_samples, shuffle=False)
     predictor = Predictor(model_path_name, num_labels=2)
 
@@ -108,13 +108,13 @@ def main(
         cm_matrix = m.cm_matrix(y_true, y_pred)
         mcc = m.mcc_val(y_true, y_pred)
 
-        logger.info("confusion matrix\n\n\t{}\n".format(cm_matrix))
+        logger.info(f"confusion matrix\n\n\t{cm_matrix}\n")
         logger.info("MCC : {:>0.3f}".format(mcc))
 
     if output_csv is not None:
         df = pd.DataFrame(data=out_list)
         df.to_csv(output_csv, header=True, index=False)
-        logger.info("csv written to : {}".format(output_csv))
+        logger.info(f"csv written to : {output_csv}")
     return out_list
 
 

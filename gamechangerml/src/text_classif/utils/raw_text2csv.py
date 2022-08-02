@@ -52,7 +52,7 @@ def raw2df(src_path, glob, key="raw_text"):
             logger.info("{:>25s} : {:>5,d}".format(fname, len(sent_df)))
             yield sent_df, fname
         else:
-            logger.warning("no key '{}' in {}".format(key, fname))
+            logger.warning(f"no key '{key}' in {fname}")
 
 
 def main(src_path, glob, output_path):
@@ -82,7 +82,7 @@ def main(src_path, glob, output_path):
             output_df.to_csv(output_csv, header=True, index=False)
             output_df = new_df()
     except (FileNotFoundError, IOError) as e:
-        logger.exception("offending file : {}".format(fname))
+        logger.exception(f"offending file : {fname}")
         raise e
 
 

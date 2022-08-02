@@ -15,8 +15,7 @@ def logit_score(logits):
 
 
 def auc_val(y_true, y_logits):
-    auc = metrics.roc_auc_score(y_true, y_logits)
-    return auc
+    return metrics.roc_auc_score(y_true, y_logits)
 
 
 def flat_accuracy(preds, labels):
@@ -29,8 +28,7 @@ def accuracy_score(y_true, y_pred):
 
 
 def val_clf_report(y_true, y_pred):
-    clf_report = metrics.classification_report(y_true, y_pred, digits=3)
-    return clf_report
+    return metrics.classification_report(y_true, y_pred, digits=3)
 
 
 def mcc_val(y_true, y_pred):
@@ -39,9 +37,8 @@ def mcc_val(y_true, y_pred):
 
 def cm_matrix(y_true, y_pred):
     unique_label = np.unique([y_true, y_pred])
-    cm_pd = pd.DataFrame(
+    return pd.DataFrame(
         metrics.confusion_matrix(y_true, y_pred, labels=unique_label),
         index=["true: {:}".format(x) for x in unique_label],
         columns=["pred: {:}".format(x) for x in unique_label],
     )
-    return cm_pd

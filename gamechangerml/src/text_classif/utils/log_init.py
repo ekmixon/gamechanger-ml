@@ -27,8 +27,11 @@ def initialize_logger(to_file=False, log_name=None, output_dir=None):
 
     """
 
-    log_fmt = "[%(asctime)s%(levelname)8s], [%(filename)s:%(lineno)s "
-    log_fmt += "- %(funcName)s()], %(message)s"
+    log_fmt = (
+        "[%(asctime)s%(levelname)8s], [%(filename)s:%(lineno)s "
+        + "- %(funcName)s()], %(message)s"
+    )
+
     logger = logging.getLogger()
     logger.setLevel(logging.INFO)
 
@@ -43,14 +46,13 @@ def initialize_logger(to_file=False, log_name=None, output_dir=None):
     if to_file:
         log_name = log_name.replace(" ", "-").lower()
 
-        if output_dir is not None:
-            if not os.path.isdir(output_dir):
-                raise FileNotFoundError("no directory {}".format(output_dir))
-        else:
+        if output_dir is None:
             output_dir = os.path.dirname(os.path.realpath(__file__))
 
+        elif not os.path.isdir(output_dir):
+            raise FileNotFoundError(f"no directory {output_dir}")
         # create a file handler and set level to INFO
-        logger.info("log file : {}".format(log_name))
+        logger.info(f"log file : {log_name}")
 
         handler = logging.FileHandler(os.path.join(output_dir, log_name), "w")
         handler.setLevel(logging.INFO)

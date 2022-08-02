@@ -64,7 +64,7 @@ def main(config_yaml, data_file, model_type, num_samples, checkpoint_path):
         elif model_type == "distilbert":
             clf = DistilBertClassifier(config_yaml)
         else:
-            raise ValueError("unsupported model; got `{}`".format(model_type))
+            raise ValueError(f"unsupported model; got `{model_type}`")
 
         clf.cfg.checkpoint_path = checkpoint_path
 
@@ -80,11 +80,9 @@ def main(config_yaml, data_file, model_type, num_samples, checkpoint_path):
         # stored.
         clf.runtime["training data"] = data_name
 
-        # train on all samples
-        rs = clf.fit(train_txt, train_labels)
-        return rs
+        return clf.fit(train_txt, train_labels)
     except (FileNotFoundError, ValueError, AttributeError) as e:
-        logger.fatal("{}: {}".format(type(e), str(e)), exc_info=False)
+        logger.fatal(f"{type(e)}: {str(e)}", exc_info=False)
         raise e
 
 

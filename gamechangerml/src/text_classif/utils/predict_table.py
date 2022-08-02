@@ -72,9 +72,9 @@ def predict_table(
         pandas.DataFrame
     """
     if not os.path.isdir(data_path):
-        raise ValueError("no data path {}".format(data_path))
+        raise ValueError(f"no data path {data_path}")
     if not os.path.isdir(model_path):
-        raise ValueError("no model path {}".format(model_path))
+        raise ValueError(f"no model path {model_path}")
 
     rename_dict = {
         "entity": "Organization / Personnel",
@@ -133,8 +133,11 @@ def predict_table(
 if __name__ == "__main__":
     from argparse import ArgumentParser
 
-    desc = "Binary classification of each sentence in the files "
-    desc += "matching the 'glob' in data_path"
+    desc = (
+        "Binary classification of each sentence in the files "
+        + "matching the 'glob' in data_path"
+    )
+
     fp = os.path.split(__file__)
     fp = "python " + fp[-1]
     parser = ArgumentParser(prog=fp, description=desc)

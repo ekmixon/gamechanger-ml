@@ -84,20 +84,18 @@ class EntityCoref(object):
                     curr_entity = last_entity
                     # last_entity = curr_entity
                 new_entry[self.ENT] = curr_entity
-                logger.debug("entity : {}".format(curr_entity))
+                logger.debug(f"entity : {curr_entity}")
             entity_list.append(new_entry)
 
     def _populate_entity(self, output_list):
-        entity_list = list()
+        entity_list = []
         for idx, entry in enumerate(output_list):
             e_dict = self._new_edict()
             e_dict.update(entry)
+            entity_list.append(e_dict)
             if e_dict[self.TOPCLASS] == 0 and self.RESP in entry[self.SENT]:
-                entity_list.append(e_dict)
                 self._link_entity(output_list[idx + 1 :], entity_list)
                 return entity_list
-            else:
-                entity_list.append(e_dict)
         return entity_list
 
     def make_table(self, model_path, data_path, glob, max_seq_len, batch_size):
@@ -121,7 +119,7 @@ class EntityCoref(object):
             None
 
         """
-        self.pop_entities = list()
+        self.pop_entities = []
         for output_list, file_name in predict_glob(
             model_path, data_path, glob, max_seq_len, batch_size
         ):

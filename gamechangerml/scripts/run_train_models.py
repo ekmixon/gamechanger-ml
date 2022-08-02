@@ -199,24 +199,11 @@ if __name__ == "__main__":
     args = parser.parse_args()
     if args.nameflag:
         modelname = f"{modelname}-{args.nameflag}"
-    if args.save == "True" or args.save == "true":
-        save = True
-    else:
-        save = False
-    if args.validate:
-        validate = True
-    else:
-        validate = False
+    save = args.save in ["True", "true"]
+    validate = bool(args.validate)
     model_dest = args.model_dest
-    if args.sentenceTrans == "True" or args.sentenceTrans == "true":
-        sentTrans = True
-    else:
-        sentTrans = False
-    if args.usegpu == "True" or args.usegpu == "true":
-        gpu = True
-    else:
-        gpu = False
-
+    sentTrans = args.sentenceTrans in ["True", "true"]
+    gpu = args.usegpu in ["True", "true"]
     if not model_dest:
         model_dest = DefaultConfig.LOCAL_MODEL_DIR
     run_train(

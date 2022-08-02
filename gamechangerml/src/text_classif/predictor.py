@@ -37,25 +37,22 @@ def _log_metadata(model_path, curr_version):
         ts = chkpt_stats["timestamp"]
 
     c_version = chkpt_stats["config"]["version"]
-    if curr_version is not None:
-        if version.parse(c_version) < version.parse(curr_version):
-            msg = "model was created with v{}; you're using v{}".format(
-                c_version, curr_version
-            )
-            logger.warning(msg)
+    if curr_version is not None and version.parse(c_version) < version.parse(
+        curr_version
+    ):
+        msg = f"model was created with v{c_version}; you're using v{curr_version}"
+        logger.warning(msg)
 
     ts = datetime.datetime.fromtimestamp(ts)
     val_loss = chkpt_stats["avg_val_loss"]
-    logger.info(
-        "      checkpoint time : {}".format(ts.strftime("%Y-%m-%d %H:%M:%S"))
-    )
+    logger.info(f'      checkpoint time : {ts.strftime("%Y-%m-%d %H:%M:%S")}')
     class_name = chkpt_stats["config"]["class"]
     base_model = chkpt_stats["config"]["model name"]
-    logger.info("      current version : {}".format(curr_version))
-    logger.info(" created with version : {}".format(c_version))
-    logger.info("       training class : {}".format(class_name))
-    logger.info("           base model : {}".format(base_model))
-    logger.info("                epoch : {}".format(chkpt_stats["epoch"]))
+    logger.info(f"      current version : {curr_version}")
+    logger.info(f" created with version : {c_version}")
+    logger.info(f"       training class : {class_name}")
+    logger.info(f"           base model : {base_model}")
+    logger.info(f'                epoch : {chkpt_stats["epoch"]}')
     logger.info("         avg val loss : {:0.3f}".format(val_loss))
     logger.info("                  mcc : {:0.3f}".format(chkpt_stats["mcc"]))
 
@@ -82,7 +79,7 @@ class Predictor:
         self.compute_grads = False
         self.been_warned = False
 
-        logger.info("{} v{}".format(self.__class__.__name__, self.__version__))
+        logger.info(f"{self.__class__.__name__} v{self.__version__}")
 
         try:
             self.tokenizer = trf.AutoTokenizer.from_pretrained(
@@ -122,27 +119,21 @@ class Predictor:
 
         """
         if not 128 <= max_seq_len <= 512:
-            raise ValueError(
-                "must have  128 <= max_seq_len <= 512, got {}".format(
-                    max_seq_len
-                )
-            )
+            raise ValueError(f"must have  128 <= max_seq_len <= 512, got {max_seq_len}")
         if not self.been_warned and batch_size < 8:
             logger.warning("batch_size of at least 8 is recommended")
             self.been_warned = True
 
         batch_size = min(len(inputs), batch_size)
-        batch = list()
+        batch = []
         for ex in inputs:
             if len(batch) < batch_size:
                 batch.append(ex)
             if len(batch) >= batch_size:
-                outputs = self._predict_batch(batch, max_seq_len)
-                yield outputs
-                batch = list()
+                yield self._predict_batch(batch, max_seq_len)
+                batch = []
         if len(batch) > 0:
-            outputs = self._predict_batch(batch, max_seq_len)
-            yield outputs
+            yield self._predict_batch(batch, max_seq_len)
 
     def _predict_batch(self, inputs, max_seq_len):
         try:
@@ -179,19 +170,18 @@ class Predictor:
         detached_outputs = {
             k: val.cpu().detach().numpy() for k, val in batched_outputs.items()
         }
-        batch_output = self._post_process(detached_outputs, inputs)
-        return batch_output
+        return self._post_process(detached_outputs, inputs)
 
     @staticmethod
     def _post_process(detached_outputs, inputs):
-        outputs = list()
+        outputs = []
         keys = inputs[0].keys()
         for idx, output in enumerate(cu.unbatch_preds(detached_outputs)):
-            out_dict = dict()
             tc = detached_outputs["top_class"].flatten()
             prob = detached_outputs["prob"].flatten()
-            out_dict["top_class"] = tc[idx]
-            out_dict["prob"] = prob[idx]
-            out_dict.update({k: inputs[idx][k] for k in keys})
+            out_dict = {"top_class": tc[idx], "prob": prob[idx]} | {
+                k: inputs[idx][k] for k in keys
+            }
+
             outputs.append(out_dict)
         return outputs

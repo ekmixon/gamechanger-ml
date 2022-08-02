@@ -22,7 +22,7 @@ def main(data_file, topn=10000, suffix=""):
         )
         logger.info("train : {:5,d}".format(len(train)))
     except FileNotFoundError as e:
-        logger.fatal("\n{} : {}".format(type(e), str(e)))
+        logger.fatal(f"\n{type(e)} : {str(e)}")
         raise e
 
 

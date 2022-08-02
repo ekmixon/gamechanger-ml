@@ -45,7 +45,7 @@ def embed_abbreviations_1(
 ):
     if raw_abrv_dict is None:
         pass_ = 1
-        logger.info("loading {}".format(abbrv_path))
+        logger.info(f"loading {abbrv_path}")
         raw_abrv_dict = load_abbrv_dict(abbrv_path)
     else:
         logger.info("starting with {:,}".format(len(raw_abrv_dict)))
@@ -56,8 +56,8 @@ def embed_abbreviations_1(
 
     next_pass = defaultdict(list)
     if abrv_vector_dict is None:
-        abrv_vector_dict = dict()
-    sif_matrix = list()
+        abrv_vector_dict = {}
+    sif_matrix = []
     for short_form, long_forms in raw_abrv_dict.items():
         if len(short_form) == 1:
             continue
@@ -66,17 +66,11 @@ def embed_abbreviations_1(
             if pass_ == 1 and contains_abbrv(
                 short_form, lf_.lower(), next_pass
             ):
-                logger.info(
-                    "pass {} contains abbrv {}: {}".format(
-                        pass_, short_form, lf
-                    )
-                )
+                logger.info(f"pass {pass_} contains abbrv {short_form}: {lf}")
                 continue
             else:
                 if not lf_:
-                    logger.warning(
-                        "pass {} empty: {} {}".format(pass_, short_form, lf_)
-                    )
+                    logger.warning(f"pass {pass_} empty: {short_form} {lf_}")
                     continue
                 sif_vector = sif_embedding(
                     lf.lower(), nlp, word_wt, strict=False
@@ -84,7 +78,7 @@ def embed_abbreviations_1(
                 sif_matrix.append(sif_vector)
 
         # simple average of SIF embeddings followed by an L2 norm
-        if len(sif_matrix) == 0:
+        if not sif_matrix:
             continue
         sif_matrix_ = np.array(sif_matrix, dtype=np.float32)
         sif_avg = sif_matrix_.sum(axis=0) / np.float32(sif_matrix_.shape[0])
@@ -116,8 +110,8 @@ def embed_abbreviations_2(
         abbrv_path, word_wt, nlp, next_pass, abrv_vector_dict
     )
     logger.info("final vector len {:,}".format(len(final_vector_dict)))
-    logger.info("num leftovers (could not embed) : {}".format(len(left_overs)))
-    logger.info("{}".format(nlp("reporting system").similarity(nlp("drs"))))
+    logger.info(f"num leftovers (could not embed) : {len(left_overs)}")
+    logger.info(f'{nlp("reporting system").similarity(nlp("drs"))}')
     return final_vector_dict, left_overs
 
 

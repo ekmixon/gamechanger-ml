@@ -24,6 +24,7 @@ optional arguments:
                         abbreviation mapping
 
 """
+
 import logging
 import os
 import pickle
@@ -47,7 +48,7 @@ from gamechangerml.src.utilities.timer import Timer
 
 logger = logging.getLogger(__name__)
 
-empty_dict = dict()
+empty_dict = {}
 cfg = QEConfig()
 index_prefix, index_ext, vocab_prefix, vocab_ext = cfg.index_attribs
 
@@ -58,10 +59,8 @@ def build_ann_index(nlp, dict_to_index, ann_index=None):
         ann_index = AnnoyIndex(vector_dim, cfg.embedding_dist)
         logger.info("new index created")
 
-    idx = 0
-    for text, vec in dict_to_index.items():
+    for idx, (text, vec) in enumerate(dict_to_index.items()):
         ann_index.add_item(idx, vec)
-        idx += 1
     return dict_to_index.keys(), ann_index
 
 
@@ -69,7 +68,7 @@ def build_kws(text, kw_alg, nlp, word_wt, num_kws, ngram):
     if not text.strip():
         return empty_dict
 
-    kw_dict = dict()
+    kw_dict = {}
     keywords = kw_alg.rank(text, ngram=ngram, topn=num_kws, clean=False)
     for kw in keywords:
         vec = sif_embedding(kw, nlp, word_wt, strict=True)
@@ -86,12 +85,12 @@ def save_index(ann_index, vocab_map, output_dir):
     vocab_name = os.path.join(output_dir, vocab_prefix + ts + vocab_ext)
     try:
         ann_index.save(idx_name)
-        logger.info("index saved to {}".format(idx_name))
+        logger.info(f"index saved to {idx_name}")
         with open(vocab_name, "wb") as fh:
             pickle.dump(vocab_map, fh)
-        logger.info("vocabulary map saved to {}".format(vocab_name))
+        logger.info(f"vocabulary map saved to {vocab_name}")
     except IOError as e:
-        logger.exception("{}: {}".format(type(e), str(e)), exc_info=True)
+        logger.exception(f"{type(e)}: {str(e)}", exc_info=True)
         raise
 
 
@@ -130,20 +129,16 @@ def main(
         FileNotFoundError if any required file cannot be read or a required
             directory does not exist
     """
-    logger.info("{} version {}".format(__name__, v.__version__))
+    logger.info(f"{__name__} version {v.__version__}")
     if not os.path.isdir(index_dir):
-        raise FileNotFoundError(
-            "directory not found; got {}".format(index_dir)
-        )
+        raise FileNotFoundError(f"directory not found; got {index_dir}")
     if not os.path.isdir(corpus_dir):
-        raise FileNotFoundError(
-            "directory not found; got {}".format(corpus_dir)
-        )
+        raise FileNotFoundError(f"directory not found; got {corpus_dir}")
 
     word_wt = get_word_weight(weight_file=word_wt_file, a=1e-03)
 
     if ngram[0] < 1:
-        raise ValueError("minimum ngram must be > 0; got {}".format(ngram))
+        raise ValueError(f"minimum ngram must be > 0; got {ngram}")
 
     logger.info("loading spaCy vectors")
     nlp = get_lg_vectors()
@@ -151,7 +146,7 @@ def main(
     # TODO add title and abbreviation embeddings
 
     kw_alg = Rake(stop_words="smart")
-    vec_dict = dict()
+    vec_dict = {}
     empty_text = 0
     rejected = 0
 
@@ -164,11 +159,10 @@ def main(
                 continue
             text = simple_clean(text)
 
-            kw_vectors = build_kws(
+            if kw_vectors := build_kws(
                 text, kw_alg, nlp, word_wt, num_keywords, ngram
-            )
-            if kw_vectors:
-                vec_dict.update(kw_vectors)
+            ):
+                vec_dict |= kw_vectors
             else:
                 rejected += 1
 
@@ -270,7 +264,7 @@ if __name__ == "__main__":
     else:
         ngram = args.ngram
     if int(ngram[0]) - int(ngram[1]) > 0:
-        raise ValueError("invalid argument ngram; got {}".format(args.ngram))
+        raise ValueError(f"invalid argument ngram; got {args.ngram}")
 
     logger.info("Building query expansion embedding index")
     with Timer():

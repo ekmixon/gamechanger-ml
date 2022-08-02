@@ -72,12 +72,11 @@ class QeMLM(object):
         chk = [component in nlp_pipeline for component in self.req_pipeline]
         if False in chk:
             raise AttributeError(
-                "spaCy pipeline must be {}; got {}".format(
-                    self.req_pipeline, nlp_pipeline
-                )
+                f"spaCy pipeline must be {self.req_pipeline}; got {nlp_pipeline}"
             )
 
-        logger.info("loading {}".format(model_path))
+
+        logger.info(f"loading {model_path}")
         try:
             self.tokenizer = AutoTokenizer.from_pretrained(
                 self.model_path, use_fast=True
@@ -89,7 +88,7 @@ class QeMLM(object):
             raise e
 
         self._result = None
-        logger.info("{} {}".format(self.__class__.__name__, self.__version__))
+        logger.info(f"{self.__class__.__name__} {self.__version__}")
 
     @property
     def explain(self):
@@ -111,24 +110,21 @@ class QeMLM(object):
         probs = tf.nn.softmax(mask_token_logits)
         topk = tf.math.top_k(probs, top_n)
         top_n_probs, top_n_tokens = topk.values.numpy(), topk.indices.numpy()
-        results = [
+        return [
             {
                 "token": tokenizer.decode([top_n_tokens[i]]),
                 "probability": float(top_n_probs[i]),
             }
             for i in range(len(top_n_probs))
         ]
-        return results
 
     def _expand(self, query, top_n, threshold, min_tokens):
-        new_terms = list()
-        candidate_expansions = list()
+        new_terms = []
+        candidate_expansions = []
 
         wc = count_words(query)
         if wc < min_tokens:
-            logger.warning(
-                "number of tokens {} < min_tokens {}".format(wc, min_tokens)
-            )
+            logger.warning(f"number of tokens {wc} < min_tokens {min_tokens}")
             return candidate_expansions
 
         doc = self.nlp(query)
@@ -156,7 +152,7 @@ class QeMLM(object):
                 }
             )
 
-        terms_list = list()
+        terms_list = []
         seen_terms = set()
         for token in new_terms:
             if (

@@ -34,9 +34,4 @@ class ContainsEntity:
     @staticmethod
     def _re_search(text, regex):
         mobj = re.search(regex, text)
-        if mobj is None:
-            return False
-        elif len(mobj.group(1)) > 1:
-            return True
-        else:
-            return False
+        return mobj is not None and len(mobj[1]) > 1

@@ -19,7 +19,7 @@ def embed_titles(corpus_dir, nlp, word_wt):
     title_count = 0
     skipped = 0
     oov = 0
-    embed_dict = dict()
+    embed_dict = {}
     keys = ("title", "filename")
     with Timer():
         for values in gen_json_mult_keys(corpus_dir, keys=keys):
@@ -34,7 +34,7 @@ def embed_titles(corpus_dir, nlp, word_wt):
             if is_zero_vector(sif_vector):
                 oov += 1
             title_count += 1
-            if title_count in [1, 5, 10, 100, 500] or title_count % 1000 == 0:
+            if title_count in {1, 5, 10, 100, 500} or title_count % 1000 == 0:
                 logger.info("titles processed {:>6,d}".format(title_count))
             embed_dict[filename] = sif_vector
         logger.info("total processed {:>6,d}".format(title_count))
@@ -46,11 +46,12 @@ def embed_titles(corpus_dir, nlp, word_wt):
 
 
 def make_json(word_vec_dict):
-    json_dict = dict()
-    for word, vector in word_vec_dict.items():
-        json_dict[word] = json.dumps(vector, cls=NumpyEncoder)
-    json_out = json.dumps(json_dict)
-    return json_out
+    json_dict = {
+        word: json.dumps(vector, cls=NumpyEncoder)
+        for word, vector in word_vec_dict.items()
+    }
+
+    return json.dumps(json_dict)
 
 
 if __name__ == "__main__":

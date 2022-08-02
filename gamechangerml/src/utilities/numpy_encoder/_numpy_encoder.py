@@ -31,10 +31,8 @@ class NumpyEncoder(json.JSONEncoder):
             return int(obj)
         elif isinstance(obj, (np.ndarray,)):
             enc = self._obj_data(obj)
-            output_dict = dict(
-                __ndarray__=enc, dtype=str(obj.dtype), shape=obj.shape
-            )
-            return output_dict
+            return dict(__ndarray__=enc, dtype=str(obj.dtype), shape=obj.shape)
+
         elif isinstance(obj, (np.float_, np.float16, np.float32, np.float64)):
             return float(obj)
         elif isinstance(obj, (np.datetime64,)):
@@ -53,8 +51,7 @@ class NumpyEncoder(json.JSONEncoder):
             obj_data = cont_obj.data
 
         base64_bytes = base64.b64encode(obj_data)
-        base64_str = base64_bytes.decode("utf-8")
-        return base64_str
+        return base64_bytes.decode("utf-8")
 
 
 def ndarray_hook(obj):

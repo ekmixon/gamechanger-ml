@@ -47,62 +47,60 @@ def expand_abbreviations(
         for k, v in dic.items()
     }
     for key in words:
-        if " " in key:
-            if key in text:
-                for value in lower[key]:
-                    val = re.sub(
-                        # characters between ^ and ] are the ones allowed by this regex
-                        pattern=r"""[^0-9a-zA-Z_ &-'"]""",
-                        repl=" ",
-                        string=value,
-                    )  # removes characters not in the regex
-                    val = re.sub(
-                        pattern=r"\s+", repl=r" ", string=val
-                    )  # eliminates excess spaces
-                    if text.lower().find(val.lower()) != -1:
-                        d[key.lower()] = val
-                        # regex identifies where the abbreviaiton is and prevents finding abbreviations within words
-                        realtext = re.sub(
-                            rf"(?<!-)\b{re.escape(key)}\b(?!-)",
-                            value,
-                            realtext,
-                        )
-                        realtext = re.sub(
-                            val + "[\,\.]?\s+" + val,
-                            value,
-                            realtext,
-                            flags=re.I,
-                        )
-                        break
+        if " " in key and key in text:
+            for value in lower[key]:
+                val = re.sub(
+                    # characters between ^ and ] are the ones allowed by this regex
+                    pattern=r"""[^0-9a-zA-Z_ &-'"]""",
+                    repl=" ",
+                    string=value,
+                )  # removes characters not in the regex
+                val = re.sub(
+                    pattern=r"\s+", repl=r" ", string=val
+                )  # eliminates excess spaces
+                if text.lower().find(val.lower()) != -1:
+                    d[key.lower()] = val
+                    # regex identifies where the abbreviaiton is and prevents finding abbreviations within words
+                    realtext = re.sub(
+                        rf"(?<!-)\b{re.escape(key)}\b(?!-)",
+                        value,
+                        realtext,
+                    )
+                    realtext = re.sub(
+                        val + "[\,\.]?\s+" + val,
+                        value,
+                        realtext,
+                        flags=re.I,
+                    )
+                    break
 
     docword = text.split(" ")
 
     for word in docword:
-        if word.lower() in words:
-            if word[0].isupper() or word in dic.keys():
-                for value in lower[word.lower()]:
-                    val = re.sub(
-                        pattern=r"""[^0-9a-zA-Z_ &-'"]""",
-                        repl=" ",
-                        string=value,
+        if word.lower() in words and (word[0].isupper() or word in dic.keys()):
+            for value in lower[word.lower()]:
+                val = re.sub(
+                    pattern=r"""[^0-9a-zA-Z_ &-'"]""",
+                    repl=" ",
+                    string=value,
+                )
+                val = re.sub(pattern=r"\s+", repl=r" ", string=val)
+                if text.lower().find(val.lower()) != -1:
+                    d[word.lower()] = val
+                    # regex identifies where the abbreviaiton is and prevents finding abbreviations within words
+                    realtext = re.sub(
+                        rf"(?<!-)\b{re.escape(word)}\b(?!-)",
+                        value,
+                        realtext,
                     )
-                    val = re.sub(pattern=r"\s+", repl=r" ", string=val)
-                    if text.lower().find(val.lower()) != -1:
-                        d[word.lower()] = val
-                        # regex identifies where the abbreviaiton is and prevents finding abbreviations within words
-                        realtext = re.sub(
-                            rf"(?<!-)\b{re.escape(word)}\b(?!-)",
-                            value,
-                            realtext,
-                        )
-                        realtext = re.sub(
-                            val + "[\,\.]?\s+" + val,
-                            value,
-                            realtext,
-                            flags=re.I,
-                        )
-                        break
-    d = dict((k, v) for k, v in d.items() if v)
+                    realtext = re.sub(
+                        val + "[\,\.]?\s+" + val,
+                        value,
+                        realtext,
+                        flags=re.I,
+                    )
+                    break
+    d = {k: v for k, v in d.items() if v}
     abb_list = []
     for entry in d:
         abb_dict = {"abbr_s": d[entry], "description_s": entry}
@@ -152,25 +150,23 @@ def expand_abbreviations_no_context(
         for k, v in dic.items()
     }
     for key in words:
-        if " " in key:
-            if key in text:
-                expansion.append(
-                    max(
-                        lower[key.lower()], key=lambda k: lower[key.lower()][k]
-                    )
+        if " " in key and key in text:
+            expansion.append(
+                max(
+                    lower[key.lower()], key=lambda k: lower[key.lower()][k]
                 )
+            )
 
     docword = text.split(" ")
 
-    for word in docword:
-        if word.lower() in words:
-            if word[0].isupper() or word in dic.keys():
-                expansion.append(
-                    max(
-                        lower[word.lower()],
-                        key=lambda k: lower[word.lower()][k],
-                    )
-                )
+    expansion.extend(
+        max(
+            lower[word.lower()],
+            key=lambda k: lower[word.lower()][k],
+        )
+        for word in docword
+        if word.lower() in words and (word[0].isupper() or word in dic.keys())
+    )
 
     return expansion
 
@@ -187,11 +183,7 @@ def add_abbreviations(add, path):
         dict = json.load(file)
 
     for k, v in add.items():
-        if k in dict:
-            dict[k] = list(set(dict[k] + v))
-        else:
-            dict[k] = v
-
+        dict[k] = list(set(dict[k] + v)) if k in dict else v
     with open(path, "w") as file:
         json.dump(dict, file)
 
@@ -248,51 +240,49 @@ def find_abbreviations(
         for k, v in dic.items()
     }
     for key in words:
-        if " " in key:
-            if key in text:
-                for item in clean[key.lower()]:
-                    for value in dic[item]:
-                        # characters between ^ and ] are the ones allowed by this regex
-                        val = re.sub(
-                            pattern=r"""[^0-9a-zA-Z_ &-'"]""",
-                            repl=" ",
-                            string=value,
-                        )
-                        val = re.sub(pattern=r"\s+", repl=r" ", string=val)
-                        if text.lower().find(val.lower()) != -1:
-                            # regex identifies where the abbreviaiton is and prevents finding abbreviations within words
-                            num = len(
-                                re.findall(
-                                    rf"(?<!-)\b{re.escape(key)}\b(?!-)", text
-                                )
+        if " " in key and key in text:
+            for item in clean[key.lower()]:
+                for value in dic[item]:
+                    # characters between ^ and ] are the ones allowed by this regex
+                    val = re.sub(
+                        pattern=r"""[^0-9a-zA-Z_ &-'"]""",
+                        repl=" ",
+                        string=value,
+                    )
+                    val = re.sub(pattern=r"\s+", repl=r" ", string=val)
+                    if text.lower().find(val.lower()) != -1:
+                        # regex identifies where the abbreviaiton is and prevents finding abbreviations within words
+                        num = len(
+                            re.findall(
+                                rf"(?<!-)\b{re.escape(key)}\b(?!-)", text
                             )
-                            d[item] = [value, num]
-                            break
+                        )
+                        d[item] = [value, num]
+                        break
 
     docword = text.split(" ")
 
     for word in docword:
-        if word.lower() in words:
-            if word[0].isupper() or word in dic.keys():
-                for item in clean[word.lower()]:
-                    for value in dic[item]:
-                        # characters between ^ and ] are the ones allowed by this regex
-                        val = re.sub(
-                            pattern=r"""[^0-9a-zA-Z_ &-'"]""",
-                            repl=" ",
-                            string=value,
-                        )
-                        val = re.sub(pattern=r"\s+", repl=r" ", string=val)
-                        if text.lower().find(val.lower()) != -1:
-                            # regex identifies where the abbreviaiton is and prevents finding abbreviations within words
-                            num = len(
-                                re.findall(
-                                    rf"(?<!-)\b{re.escape(word)}\b(?!-)", text
-                                )
+        if word.lower() in words and (word[0].isupper() or word in dic.keys()):
+            for item in clean[word.lower()]:
+                for value in dic[item]:
+                    # characters between ^ and ] are the ones allowed by this regex
+                    val = re.sub(
+                        pattern=r"""[^0-9a-zA-Z_ &-'"]""",
+                        repl=" ",
+                        string=value,
+                    )
+                    val = re.sub(pattern=r"\s+", repl=r" ", string=val)
+                    if text.lower().find(val.lower()) != -1:
+                        # regex identifies where the abbreviaiton is and prevents finding abbreviations within words
+                        num = len(
+                            re.findall(
+                                rf"(?<!-)\b{re.escape(word)}\b(?!-)", text
                             )
-                            d[item] = [value, num]
-                            break
-    d = dict((k, v) for k, v in d.items() if v)
+                        )
+                        d[item] = [value, num]
+                        break
+    d = {k: v for k, v in d.items() if v}
     return d
 
 
@@ -306,7 +296,7 @@ def count_abbreviations(directory, output):
     """
     counts = defaultdict(lambda: defaultdict(int))
     for file in os.listdir(directory):
-        with open(directory + "/" + file, "r") as f_in:
+        with open(f"{directory}/{file}", "r") as f_in:
             try:
                 doc_dict = json.load(f_in)
             except:

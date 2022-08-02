@@ -28,21 +28,16 @@ class SpacyConfig(Borg):
 
 def _log_metadata(nlp):
     logger.info(
-        "{} version {} vector width = {}".format(
-            nlp.meta["vectors"]["name"],
-            nlp.meta["version"],
-            nlp.meta["vectors"]["width"],
-        )
+        f'{nlp.meta["vectors"]["name"]} version {nlp.meta["version"]} vector width = {nlp.meta["vectors"]["width"]}'
     )
 
 
 def _load_spacy_name(model_name, disable):
-    if model_name == "spacy-large":
-        nlp = en_core_web_md.load(disable=disable)
-        _log_metadata(nlp)
-        logger.info("disabled components {}".format(str(disable)))
-    else:
-        raise ValueError("model not supported: {}".format(model_name))
+    if model_name != "spacy-large":
+        raise ValueError(f"model not supported: {model_name}")
+    nlp = en_core_web_md.load(disable=disable)
+    _log_metadata(nlp)
+    logger.info(f"disabled components {str(disable)}")
     return nlp
 
 
@@ -52,15 +47,15 @@ def _set_nlp(model_name, disable=None):
 
     """
     if disable is None:
-        disable = list()
+        disable = []
     c = SpacyConfig()
     if c.config is None:
         nlp = _load_spacy_name(model_name, disable)
         c.config = {"nlp": nlp}
-        return c
     else:
         logger.info("using existing language model")
-        return c
+
+    return c
 
 
 def get_lg_nlp():
@@ -75,7 +70,7 @@ def get_lg_nlp():
         c = _set_nlp("spacy-large", disable=None)
         return c.config["nlp"]
     except ValueError as e:
-        logger.exception("{}: {}".format(type(e), str(e)), exc_info=True)
+        logger.exception(f"{type(e)}: {str(e)}", exc_info=True)
         raise e
 
 
@@ -93,7 +88,7 @@ def get_lg_vectors():
         c = _set_nlp("spacy-large", disable=["ner", "parser", "tagger"])
         return c.config["nlp"]
     except ValueError as e:
-        logger.exception("{}: {}".format(type(e), str(e)), exc_info=True)
+        logger.exception(f"{type(e)}: {str(e)}", exc_info=True)
         raise e
 
 

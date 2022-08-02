@@ -21,17 +21,16 @@ def parse_requirements(requirements: Path) -> List[str]:
         ]
 
         final_rlist = [
-            line
-            if not re.match(
-                pattern=r"^https?://.*$",
-                string=line)
-            else re.sub(
+            re.sub(
                 pattern=r"(.*(?:https?://.*/)([a-zA-Z0-9_].*)[-]([a-zA-Z0-9.]*)([.]tar[.]gz|[.]tgz).*)",
                 repl=r"\2 @ \1",
-                string=line
+                string=line,
             )
+            if re.match(pattern=r"^https?://.*$", string=line)
+            else line
             for line in rlist_sans_comments
         ]
+
 
     return final_rlist
 

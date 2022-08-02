@@ -47,11 +47,7 @@ class EvalTool(object):
         else:
             raise FileNotFoundError("Ground truth file was not found. Please makue sure you are point to the correct JSON file...")
 
-        if k_s is None:
-            self.k_s = [1] + [i * 5 for i in range(1, 21)]
-        else:
-            self.k_s = k_s
-
+        self.k_s = [1] + [i * 5 for i in range(1, 21)] if k_s is None else k_s
         self.params = params
         self.metrics_at_k = None
 
@@ -128,11 +124,10 @@ class EvalTool(object):
         sub_predictions = {}
 
         for query_id, document_rank in predictions.items():
-            subset_document_rank = {}
+            subset_document_rank = {
+                doc_id: rank for doc_id, rank in document_rank.items() if rank <= k
+            }
 
-            for doc_id, rank in document_rank.items():
-                if rank <= k:
-                    subset_document_rank[doc_id] = rank
 
             sub_predictions[query_id] = subset_document_rank
 
@@ -211,7 +206,7 @@ class EvalTool(object):
             precision = scores["precision"]
             k_values.append(k)
             precision_scores.append(precision)
-        
+
         plt.plot(k_values, precision_scores, label = "Precision")
         plt.xlabel("k values")
         plt.ylabel("Precision")
@@ -232,7 +227,7 @@ class EvalTool(object):
             recall = scores["recall"]
             k_values.append(k)
             recall_scores.append(recall)
-        
+
         plt.plot(k_values, recall_scores, label = "Recall")
         plt.xlabel("k values")
         plt.ylabel("Recall")
@@ -253,7 +248,7 @@ class EvalTool(object):
             mrr = scores["mrr_at_k"]
             k_values.append(k)
             mrr_scores.append(mrr)
-        
+
         plt.plot(k_values, mrr_scores, label = "MRR")
         plt.xlabel("k values")
         plt.ylabel("MRR")

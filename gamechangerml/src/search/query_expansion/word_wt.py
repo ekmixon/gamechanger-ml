@@ -10,13 +10,13 @@ def get_word_weight(weight_file="enwiki_vocab_min200.txt", a=1e-3):
         a = 1.0
 
     weight_file_path = os.path.join(AUX_DATA_PATH, weight_file)
-    
-    word2weight = dict()
+
+    word2weight = {}
     try:
         with open(weight_file_path) as f:
             lines = f.readlines()
     except FileNotFoundError as e:
-        logger.exception("{}: {}".format(type(e), str(e)), exc_info=True)
+        logger.exception(f"{type(e)}: {str(e)}", exc_info=True)
         raise
 
     N = 0

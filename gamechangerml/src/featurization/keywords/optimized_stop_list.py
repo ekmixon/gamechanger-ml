@@ -35,10 +35,7 @@ def make_regex(regex, trailing):
     :type trailing: bool
     :return: _sre.SRE_Pattern
     """
-    if trailing:
-        regex = r"\b" + regex + r"(?![\w-])"
-    else:
-        regex = r"\b" + regex + r"\b"
+    regex = r"\b" + regex + r"(?![\w-])" if trailing else r"\b" + regex + r"\b"
     return re.compile(regex, re.I)
 
 
@@ -108,7 +105,7 @@ def load_stops(stop_name, trailing=True):
     elif stop_name == "smart-gc":
         return smart_gc_optimized_regex(trailing)
     else:
-        raise ValueError("unknown stop list name: {}".format(stop_name))
+        raise ValueError(f"unknown stop list name: {stop_name}")
 
 
 def split_on_stopwords(string, stops_re):

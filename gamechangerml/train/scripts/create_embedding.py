@@ -102,7 +102,7 @@ def main():
     encoder_path = os.path.join(model_dir, "transformers", args.encoder_model)
 
     index_name = datetime.now().strftime("%Y%m%d")
-    local_sent_index_dir = os.path.join(model_dir, "sent_index_" + index_name)
+    local_sent_index_dir = os.path.join(model_dir, f"sent_index_{index_name}")
 
     # Define new index directory
     if not os.path.isdir(local_sent_index_dir):
@@ -132,7 +132,7 @@ def main():
         json.dump(metadata, fp)
 
     # Create .tgz file
-    dst_path = local_sent_index_dir + ".tar.gz"
+    dst_path = f"{local_sent_index_dir}.tar.gz"
     create_tgz_from_dir(src_dir=local_sent_index_dir, dst_archive=dst_path)
 
     # Upload to S3
@@ -142,9 +142,7 @@ def main():
         logger.info(f"Uploading files to {s3_sent_index_dir}")
         logger.info(f"\tUploading: {local_sent_index_dir}")
         local_path = os.path.join(dst_path)
-        s3_path = os.path.join(
-            s3_sent_index_dir, "sent_index_" + index_name + ".tar.gz"
-        )
+        s3_path = os.path.join(s3_sent_index_dir, f"sent_index_{index_name}.tar.gz")
         utils.upload_file(local_path, s3_path)
 
 

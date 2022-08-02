@@ -41,7 +41,7 @@ def assess_model(
     """
     model_dir = os.path.join(model_dir, model_name)
     model = D2V(model_name)
-    model.load(os.path.join(model_dir, model_name + "_model.d2v"))
+    model.load(os.path.join(model_dir, f"{model_name}_model.d2v"))
 
     phrase_detector = Phrase_Detector(model_name)
     phrase_detector.load(model_dir)
@@ -77,7 +77,7 @@ def assess_model(
 
     # TODO: remove when the corpus stuff is figured out
     path = os.getcwd()
-    if len(list(Path(path).glob("corpus/*.json"))) == 0:
+    if not list(Path(path).glob("corpus/*.json")):
         logger.info("couldn't get any docs from corpus")
         return
 
@@ -120,7 +120,7 @@ def assess_model(
         if first_doc == doc_id:
             total_doc_first += 1
 
-        first_par = first_doc + "_" + str(results[first_doc][0][0])
+        first_par = f"{first_doc}_{str(results[first_doc][0][0])}"
         if first_par == par_id:
             total_par_first += 1
 
@@ -148,15 +148,14 @@ def assess_model(
     if total == 0:
         logger.info("Didn't process any paragraphs.")
         total = 1
-    results_dict = {}
-    results_dict["model_name"] = model_name
-    results_dict["total_above_70"] = total_above_70 / total * 100
-    results_dict["total_above_40"] = total_above_40 / total * 100
-    results_dict["total_above_10"] = total_above_10 / total * 100
-    results_dict["total_par_first"] = total_par_first / total * 100
-    results_dict["total_doc_first"] = total_doc_first / total * 100
-
-    return results_dict
+    return {
+        "model_name": model_name,
+        "total_above_70": total_above_70 / total * 100,
+        "total_above_40": total_above_40 / total * 100,
+        "total_above_10": total_above_10 / total * 100,
+        "total_par_first": total_par_first / total * 100,
+        "total_doc_first": total_doc_first / total * 100,
+    }
 
 
 def print_results(results_list, logger):
@@ -214,7 +213,7 @@ def assess_model_gs(
     """
     model_dir = os.path.join(model_dir, model_name)
     model = D2V(model_name)
-    model.load(os.path.join(model_dir, model_name + "_model.d2v"))
+    model.load(os.path.join(model_dir, f"{model_name}_model.d2v"))
 
     phrase_detector = Phrase_Detector(model_name)
     phrase_detector.load(model_dir)
@@ -256,7 +255,7 @@ def assess_model_gs(
         found = 0
 
         for expected in expect_list:
-            if (expected + ".pdf") in list(results.keys()):
+            if f"{expected}.pdf" in list(results.keys()):
                 found += 1
                 overall_found += 1
 
@@ -352,16 +351,17 @@ def assess_all_models(
     for model_name in model_list:
         if gold_standard:
             if iterate:
-                number_passed = 0
-                for iterations in [1] + [i * 5 for i in range(1, 11)]:
+                number_passed = sum(
+                    1
+                    for iterations in [1] + [i * 5 for i in range(1, 11)]
                     if assess_model_gs(
                         model_name=model_name,
                         model_dir=model_path,
                         logger=logger,
                         verbose=verbose,
                         top_n=iterations,
-                    ):
-                        number_passed += 1
+                    )
+                )
 
                 passed = number_passed >= 5
 

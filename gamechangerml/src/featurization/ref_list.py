@@ -40,7 +40,7 @@ def look_for_general(
             num_match = base_num.search(match[0])
             if not num_match:
                 continue
-            ref = (str(doc_type) + " " + str(num_match[0])).strip()
+            ref = f"{doc_type} {str(num_match[0])}".strip()
             ref_dict[ref] += 1
     return ref_dict
 

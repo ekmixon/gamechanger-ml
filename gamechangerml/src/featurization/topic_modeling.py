@@ -115,10 +115,12 @@ class Topics(object):
         doc_term_matrix = [self.dictionary.doc2bow(tokens)]
         doc_tfidf = self.tfidf[doc_term_matrix]
 
-        word = []
         doc = doc_tfidf[0]
-        for id, value in doc:
-            if self.dictionary.get(id) not in custom_stopwords:
-                word.append((value, self.dictionary.get(id)))
+        word = [
+            (value, self.dictionary.get(id))
+            for id, value in doc
+            if self.dictionary.get(id) not in custom_stopwords
+        ]
+
         word.sort(reverse=True)
         return word[:topn]

@@ -88,7 +88,7 @@ def gen_cand_keywords(sentence_list, stopword_re):
     :type stopword_re: _sre.SRE_Pattern
     :return: list
     """
-    phrase_list = list()
+    phrase_list = []
     for s in sentence_list:
         p = stops.split_on_stopwords(s, stopword_re)
         phrase_list.extend(p)
@@ -107,7 +107,7 @@ def calc_word_scores(phrase_list, splitter):
     """
     word_frequency = defaultdict(int)
     word_degree = defaultdict(int)
-    phrase_words = list()
+    phrase_words = []
 
     for phrase in phrase_list:
         word_list = [

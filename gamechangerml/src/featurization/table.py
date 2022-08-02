@@ -61,7 +61,7 @@ class Table:
                 try:
                     self.doc_dict = json.load(f_in)
                 except json.JSONDecodeError:
-                    logger.warning("could not decode `{}`".format(file))
+                    logger.warning(f"could not decode `{file}`")
                     continue
             file = self.doc_dict["filename"]
             text = self.doc_dict["raw_text"]
@@ -77,10 +77,7 @@ class Table:
                 self.next_it,
             )
             self.num = re.search(self.decimal_digits, self.it)
-            if self.num:
-                self.num = self.num[1]
-            else:
-                self.num = ""
+            self.num = self.num[1] if self.num else ""
             if "." in self.it and self.it + "1." in resp_text:
                 temp_df, doc_dups = self.decimal_parse(resp_text, file, entity)
             else:
@@ -138,43 +135,32 @@ class Table:
                 self.decimal_digits, lambda x: str(int(x.group(1)) + 1), num
             ):
                 num = this
-                if self.indicators:
-                    text = self.it + i
-                else:
-                    text = i[i.index(" ") + 1 :]
+                text = self.it + i if self.indicators else i[i.index(" ") + 1 :]
                 text = re.sub("\n", "", text)
                 text = text.replace(entity, "", 1)
 
                 cols.pop()
-                temp_df = self.add_row(text, cols, temp_df)
             elif this == num + "1.":
                 level += 1
                 if level not in temp_df.columns:
                     temp_df[level] = ""
                 num = this
-                if self.indicators:
-                    text = self.it + i
-                else:
-                    text = i[i.index(" ") + 1 :]
+                text = self.it + i if self.indicators else i[i.index(" ") + 1 :]
                 text = re.sub("\n", "", text)
                 text = text.replace(entity, "", 1)
-                temp_df = self.add_row(text, cols, temp_df)
             else:
                 if (".") not in this:
                     continue
                 if level != 1:
-                    for a in range(num.count(".") - this.count(".")):
+                    for _ in range(num.count(".") - this.count(".")):
                         level -= 1
                         cols.pop()
                 num = this
-                if self.indicators:
-                    text = self.it + i
-                else:
-                    text = i[i.index(" ") + 1 :]
+                text = self.it + i if self.indicators else i[i.index(" ") + 1 :]
                 text = re.sub("\n", "", text)
                 text = text.replace(entity, "", 1)
                 cols.pop()
-                temp_df = self.add_row(text, cols, temp_df)
+            temp_df = self.add_row(text, cols, temp_df)
             doc_dups.append(
                 check_duplicates(self.raw_text, self.duplicates, self.aliases)
             )
@@ -199,10 +185,7 @@ class Table:
         prev = 0
         while len(found) > 1:
             it = found[2]
-            if (
-                vals[0] + "." == found[2]
-                or self.num + "." + vals[0] + "." == found[2]
-            ):
+            if vals[0] + "." == it or self.num + "." + vals[0] + "." == it:
                 if levels[0] == 0:
                     level += 1
                     levels[0] = level
@@ -210,7 +193,7 @@ class Table:
                         temp_df[level] = ""
                 vals[0] = str(int(vals[0]) + 1)
                 found = re.split(self.find, found[3], 1)
-                for i in range(prev - levels[0]):
+                for _ in range(prev - levels[0]):
                     if levels[1] > levels[0]:
                         vals[1] = "a"
                     if levels[2] > levels[0]:
@@ -227,10 +210,7 @@ class Table:
                 prev = levels[0]
                 temp_df = self.add_row2(temp_df, cols, levels[0])
 
-            elif (
-                vals[1] + "." in found[2]
-                or chr(ord(vals[1]) + 1) + "." in found[2]
-            ):
+            elif vals[1] + "." in it or f"{chr(ord(vals[1]) + 1)}." in it:
                 if levels[1] == 0:
                     level += 1
                     if level < 4:
@@ -238,7 +218,7 @@ class Table:
                     levels[1] = level
                 vals[1] = chr(ord(vals[1]) + 1)
                 found = re.split(self.find, found[3], 1)
-                for i in range(prev - levels[1]):
+                for _ in range(prev - levels[1]):
                     if levels[0] > levels[1]:
                         vals[0] = "1"
                     if levels[2] > levels[1]:
@@ -254,7 +234,7 @@ class Table:
                     cols.append(found[0])
                 prev = levels[1]
                 temp_df = self.add_row2(temp_df, cols, levels[1])
-            elif re.compile("\(\s*" + vals[2] + "\s*\)").search(found[2]):
+            elif re.compile("\(\s*" + vals[2] + "\s*\)").search(it):
                 if levels[2] == 0:
                     level += 1
                     if level < 4:
@@ -262,7 +242,7 @@ class Table:
                     levels[2] = level
                 vals[2] = str(int(vals[2]) + 1)
                 found = re.split(self.find, found[3], 1)
-                for i in range(prev - levels[2]):
+                for _ in range(prev - levels[2]):
                     if levels[1] > levels[2]:
                         vals[1] = "a"
                     if levels[3] > levels[2]:
@@ -278,7 +258,7 @@ class Table:
                     cols.append(found[0])
                 prev = levels[2]
                 temp_df = self.add_row2(temp_df, cols, levels[2])
-            elif re.compile("\(\s*" + vals[3] + "\s*\)").search(found[2]):
+            elif re.compile("\(\s*" + vals[3] + "\s*\)").search(it):
                 if levels[3] == 0:
                     level += 1
                     if level < 4:
@@ -286,7 +266,7 @@ class Table:
                     levels[3] = level
                 vals[3] = chr(ord(vals[3]) + 1)
                 found = re.split(self.find, found[3], 1)
-                for i in range(prev - levels[3]):
+                for _ in range(prev - levels[3]):
                     if levels[1] > levels[3]:
                         vals[1] = "a"
                     if levels[0] > levels[3]:
@@ -309,7 +289,7 @@ class Table:
                     cols.append(pop + it + found[0])
                     add = [""] * (len(temp_df.columns) - len(cols))
                     if len(cols) > 5:
-                        newcols = cols[0:2] + cols[-3:]
+                        newcols = cols[:2] + cols[-3:]
                         temp_df.iloc[-1] = newcols
                     else:
                         temp_df.iloc[-1] = cols + add
@@ -322,7 +302,7 @@ class Table:
     def add_row2(self, temp_df, cols, lev):
         add = [""] * (len(temp_df.columns) - len(cols))
         if lev > 3:
-            newcols = cols[0:2] + cols[-3:]
+            newcols = cols[:2] + cols[-3:]
             temp_df.loc[len(temp_df)] = newcols
         else:
             temp_df.loc[len(temp_df)] = cols + add
@@ -395,7 +375,7 @@ class Table:
 
             flat_entities = remove_articles(flat_entities)
             flat_entities = match_parenthesis(flat_entities)
-            flat_entities = "|".join(i for i in set(flat_entities))
+            flat_entities = "|".join(set(flat_entities))
             all_docs.append(flat_entities)
 
         df["agencies"] = all_docs

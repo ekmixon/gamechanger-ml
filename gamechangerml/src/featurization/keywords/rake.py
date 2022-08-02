@@ -45,13 +45,13 @@ def _clean(string):
 
 def _check_params(ngram, topn):
     if ngram[0] > ngram[1]:
-        raise ValueError("illegal value for ngram; got {}".format(ngram))
+        raise ValueError(f"illegal value for ngram; got {ngram}")
 
     if ngram[0] < 1 or ngram[1] < 1:
-        raise ValueError("ngrams must all be > 1; got {}".format(ngram))
+        raise ValueError(f"ngrams must all be > 1; got {ngram}")
 
     if topn <= 1:
-        raise ValueError("illegal value for topn; got {}".format(topn))
+        raise ValueError(f"illegal value for topn; got {topn}")
 
 
 def _word_length(string):
@@ -85,14 +85,10 @@ class Rake(object):
         self.nb_keywords = 0
 
         logger.debug(self.__repr__())
-        logger.info(
-            "{} version {}".format(self.__class__.__name__, self.__version__)
-        )
+        logger.info(f"{self.__class__.__name__} version {self.__version__}")
 
     def __repr__(self):
-        return "{}(stop_words={})".format(
-            self.__class__.__name__, self.stop_words
-        )
+        return f"{self.__class__.__name__}(stop_words={self.stop_words})"
 
     def rank(self, input_text, ngram=(2, 2), topn=5, clean=True):
         """

@@ -146,7 +146,7 @@ async def initQA():
         cache.set("latest_qa_model", qa_model_path)
         logger.info("Finished loading QA Reader")
     except OSError:
-        logger.error(f"Could not load Question Answer Model")
+        logger.error("Could not load Question Answer Model")
 
 
 @app.on_event("startup")
@@ -268,10 +268,7 @@ async def check_health():
         logger.warn(
             f"Model Health: BAD - Error with reloading model {new_trans_model_name}"
         )
-    if check_dep_exist:
-        good_health = True
-    else:
-        good_health = False
+    good_health = bool(check_dep_exist)
     if good_health:
         logger.info("Model Health: GOOD")
     else:
@@ -302,7 +299,7 @@ async def transformer_infer(query: dict, response: Response) -> dict:
     Returns:
         results: dict; results of inference
     """
-    logger.debug("TRANSFORMER - predicting query: " + str(query))
+    logger.debug(f"TRANSFORMER - predicting query: {query}")
     results = {}
     try:
         results = sparse_reader.predict(query)
@@ -329,22 +326,17 @@ async def textExtract_infer(query: dict, extractType: str, response: Response) -
     try:
         query_text = query["text"]
         results["extractType"] = extractType
-        if extractType == "topics":
-            logger.debug("TOPICS - predicting query: " + str(query))
-            # topics = tfidf_model.get_topics(
-            #    topic_processing(query_text, bigrams), topn=5
-            # )
-            # logger.info(topics)
-            # results["extracted"] = topics
+        if extractType == "keywords":
+            logger.debug(f"keywords - predicting query: {query}")
+            results["extracted"] = get_keywords(query_text)
+
         elif extractType == "summary":
             summary = GensimSumm(
                 query_text, long_doc=False, word_count=30
             ).make_summary()
             results["extracted"] = summary
-        elif extractType == "keywords":
-            logger.debug("keywords - predicting query: " + str(query))
-            results["extracted"] = get_keywords(query_text)
-
+        elif extractType == "topics":
+            logger.debug(f"TOPICS - predicting query: {query}")
     except Exception:
         logger.error(f"Unable to get extract text for {query}")
         response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
@@ -364,7 +356,7 @@ async def trans_sentence_infer(
     Returns:
         results: dict; results of inference
     """
-    logger.debug("SENTENCE TRANSFORMER - predicting query: " + str(query))
+    logger.debug(f"SENTENCE TRANSFORMER - predicting query: {query}")
     results = {}
     try:
         query_text = query["text"]
@@ -417,10 +409,7 @@ def unquoted(term):
     Returns:
         term: without quotes
     """
-    if term[0] in ["'", '"'] and term[-1] in ["'", '"']:
-        return term[1:-1]
-    else:
-        return term
+    return term[1:-1] if term[0] in ["'", '"'] and term[-1] in ["'", '"'] else term
 
 
 @app.post("/expandTerms", status_code=200)
@@ -445,7 +434,7 @@ async def post_expand_query_terms(termsList: dict, response: Response) -> dict:
             # removing original word from the return terms unless it is combined with another word
             logger.info(f"original expanded terms: {expansion_list}")
             finalTerms = remove_original_kw(expansion_list, term)
-            expansion_dict[term] = ['"{}"'.format(exp) for exp in finalTerms]
+            expansion_dict[term] = [f'"{exp}"' for exp in finalTerms]
             logger.info(f"-- Expanded {term} to \n {finalTerms}")
         return expansion_dict
     except:
@@ -527,12 +516,11 @@ def get_downloaded_models_list():
     except Exception as e:
         logger.error(e)
         logger.info("Cannot get Sentence Index model path")
-    model_list = {
+    return {
         "transformers": transformer_list,
         "sentence": sent_index_list,
         "qexp": qexp_list,
     }
-    return model_list
 
 
 @app.get("/getCurrentTransformer")
@@ -565,7 +553,7 @@ async def download(response: Response):
         # get_transformers(overwrite=False)
         # get_sentence_index(overwrite=False)
     except:
-        logger.warning(f"Could not get dependencies from S3")
+        logger.warning("Could not get dependencies from S3")
         response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
     return
 
@@ -580,10 +568,10 @@ async def s3_func(function, response: Response):
     models = []
     try:
         logger.info("Attempting to download dependencies from S3")
-        s3_path = "gamechanger/models/"
         if function == "models":
+            s3_path = "gamechanger/models/"
             models = utils.get_models_list(s3_path)
     except:
-        logger.warning(f"Could not get dependencies from S3")
+        logger.warning("Could not get dependencies from S3")
         response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
     return models

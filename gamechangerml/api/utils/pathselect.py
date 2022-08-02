@@ -15,7 +15,7 @@ def get_model_paths():
             if ("qexp_" in f) and ("tar" not in f)
         ]
         qexp_names.sort(reverse=True)
-        if len(qexp_names) > 0:
+        if qexp_names:
             QEXP_MODEL_PATH = os.path.join(
                 Config.LOCAL_PACKAGED_MODELS_DIR, qexp_names[0]
             )
@@ -46,7 +46,7 @@ def get_model_paths():
             if ("sent_index" in f) and ("tar" not in f)
         ]
         sent_index_name.sort(reverse=True)
-        if len(sent_index_name) > 0:
+        if sent_index_name:
             INDEX_PATH = os.path.join(
                 Config.LOCAL_PACKAGED_MODELS_DIR, sent_index_name[0]
             )

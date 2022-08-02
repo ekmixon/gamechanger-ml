@@ -39,22 +39,16 @@ def load_json(fpath):
 
 @pytest.fixture(scope="session")
 def ablation_model():
-    ablation = AblationStudy(
-        model_a_answer_path = model_a_pred_path,
-        model_b_answer_path = model_b_pred_path,
-        ground_truth_path = ground_truth_path,
+    return AblationStudy(
+        model_a_answer_path=model_a_pred_path,
+        model_b_answer_path=model_b_pred_path,
+        ground_truth_path=ground_truth_path,
     )
-    return ablation
 
 @pytest.fixture(scope="session")
 def evaltool():
     test_k_values = [5, 10, 20, 50, 100]
-    ev = EvalTool(
-        eval_tool_pred,
-        eval_tool_true,
-        test_k_values
-    )
-    return ev
+    return EvalTool(eval_tool_pred, eval_tool_true, test_k_values)
 
 @pytest.fixture(scope="session")
 def expected_values():

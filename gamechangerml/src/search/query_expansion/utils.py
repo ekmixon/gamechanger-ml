@@ -58,20 +58,22 @@ def _check_idx_timestamps(ann_file, vocab_file):
     ann_ts = ann_base.split("_")[-1]
     vocab_ts = vocab_base.split("_")[-1]
     if ann_ts != vocab_ts:
-        msg = "index and vocabulary timestamps do not match; " + "got {} and {}".format(
-            ann_base, vocab_base
+        msg = (
+            "index and vocabulary timestamps do not match; "
+            + f"got {ann_base} and {vocab_base}"
         )
+
         logger.fatal(msg)
         raise AttributeError(msg)
     else:
         ann_ts = time.strftime("%Y-%m-%d %H:%M:%S",
                                time.localtime(float(ann_ts)))
-        logger.info("QE model timestamp : {}".format(ann_ts))
+        logger.info(f"QE model timestamp : {ann_ts}")
 
 
 def find_ann_indexes(model_dir):
-    anns = list()
-    vocabs = list()
+    anns = []
+    vocabs = []
     for index_file in sorted(os.listdir(model_dir)):
         if (cfg.index_prefix in index_file) and index_file.endswith(cfg.index_ext):
             anns.append(index_file)
@@ -81,8 +83,9 @@ def find_ann_indexes(model_dir):
     if len(anns) != 1 or len(vocabs) != 1:
         msg = (
             "there must be one index and one vocabulary present. "
-            + "got {} and {} in {}".format(anns, vocabs, model_dir)
+            + f"got {anns} and {vocabs} in {model_dir}"
         )
+
         logger.fatal(msg)
         raise ValueError(msg)
     else:
@@ -95,7 +98,7 @@ def find_ann_indexes(model_dir):
 def check_vecs(vectors):
     chk = [is_zero_vector(v) for v in vectors]
     if True in chk:
-        raise ValueError("all zero vector {}".format(chk))
+        raise ValueError(f"all zero vector {chk}")
 
 
 def angular_dist_to_cos(vector):

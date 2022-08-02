@@ -22,9 +22,8 @@ def get_agencies_dict(agencies_file):
     for index, row in df.iterrows():
         temp = list(str(row["Agency_Aliases"]).split(";"))
         for i in temp:
-            agency_list = []
             if i not in aliases:
-                agency_list.append(row["Agency_Name"])
+                agency_list = [row["Agency_Name"]]
                 aliases[i] = agency_list
             else:
                 duplicates.append(i)
@@ -66,9 +65,8 @@ def get_agencies(file_dataframe, doc_dups, duplicates, agencies_dict):
             if " " + x in row["text"]:
                 if x not in duplicates:
                     agencies.append(aliases[x])
-                if doc_dups is not None:
-                    if doc_dups[i] is not None:
-                        agencies.append(doc_dups[i])
+                if doc_dups is not None and doc_dups[i] is not None:
+                    agencies.append(doc_dups[i])
         flat_a = [item for sublist in agencies for item in sublist]
         flat_a = ["".join(x) for x in flat_a]
         flat_a = set(flat_a)
@@ -92,11 +90,12 @@ def get_references(file_dataframe, doc_title_col="doc"):
     all_refs = []
 
     for i, row in df.iterrows():
-        refs = []
-        for j in list(df.columns):
-            if type(row[j]) == str:
-                if j != doc_title_col:
-                    refs.append(list(collect_ref_list(row[j]).keys()))
+        refs = [
+            list(collect_ref_list(row[j]).keys())
+            for j in list(df.columns)
+            if type(row[j]) == str and j != doc_title_col
+        ]
+
         flat_r = [item for sublist in refs for item in sublist]
         flat_r = list(set(flat_r))
         all_refs.append(flat_r)
@@ -128,9 +127,6 @@ def check_duplicates(text, duplicates, agencies_dict):
             for i in agencies_dict[dup]:
                 if i in text:
                     best_agencies.append(i)
-                if len(best_agencies) < 1:
+                if not best_agencies:
                     best_agencies.append(dup)
-    if len(best_agencies) > 0:
-        return best_agencies
-    else:
-        return None
+    return best_agencies or None

@@ -11,8 +11,7 @@ logger = logging.getLogger("gamechanger")
 def s3_connect():
     conn = boto3.Session()
     s3 = conn.resource("s3")
-    bucket = s3.Bucket(bucket_name)
-    return bucket
+    return s3.Bucket(bucket_name)
 
 
 def upload_file(filepath, s3_fullpath):

@@ -10,8 +10,8 @@ logger = logging.getLogger(__name__)
 
 def ex_1(query, qe):
     res = qe.predict(query, threshold=0.2, top_n=2)
-    logger.info("query     : {}".format(query))
-    logger.info("expansion : {}".format(res))
+    logger.info(f"query     : {query}")
+    logger.info(f"expansion : {res}")
     logger.info("explain")
     logger.info(pformat(qe.explain, indent=2, width=80))
 

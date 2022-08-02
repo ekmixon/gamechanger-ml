@@ -58,12 +58,14 @@ def sort_answers(answers: List[Tuple]) -> List[Dict[str, Union[str, float]]]:
     app_answers = []
     for ans in sorted_answers:
         if ans[0].lstrip().split(" ")[0] != "[CLS]": # ignore these non-answers
-            mydict = {}
-            mydict['text'] = ans[0]
-            mydict['probability'] = ans[1] # if getting probability
-            mydict['null_score_diff'] = ans[2]
-            mydict['status'] = ans[3]
-            mydict['context'] = ans[4]
+            mydict = {
+                'text': ans[0],
+                'probability': ans[1],
+                'null_score_diff': ans[2],
+                'status': ans[3],
+                'context': ans[4],
+            }
+
             app_answers.append(mydict)
 
     return app_answers
@@ -90,9 +92,8 @@ class DocumentReader:
     def tokenize(self, question: str, context: List[str]) -> Tuple[List[Dict[str, torch.Tensor]], List[int]]:
         """Takes in a question and context and creates tokenized inputs for each chunk/context."""
         all_inputs = []
-        context_flag = 0 # which piece of context in list of context produced the input
         context_tracker = [] # keeps track of where inputs came from
-        for i in context:
+        for context_flag, i in enumerate(context):
             inputs = self.tokenizer.encode_plus(question, i, add_special_tokens=True, return_tensors="pt")
             input_ids = inputs["input_ids"].tolist()[0]
             if len(input_ids) > self.max_len: # if the context paragraph is too long, break it up
@@ -102,8 +103,6 @@ class DocumentReader:
             else:
                 all_inputs.append(inputs)
                 context_tracker.append(context_flag)
-            context_flag += 1
-
         return all_inputs, context_tracker
 
     def chunkify(self, inputs: Dict[str, torch.Tensor]) -> List[Dict[str, torch.Tensor]]:
@@ -141,9 +140,7 @@ class DocumentReader:
 
                 chunked_input[i][k] = torch.unsqueeze(thing, dim=0)
 
-        new_inputs = [i for i in chunked_input.values()]
-
-        return new_inputs
+        return list(chunked_input.values())
 
     def get_clean_text(self, input_ids: List[int]) -> str:
         """ Convert tokens back to text """
@@ -206,7 +203,7 @@ class DocumentReader:
         )
         nbest_predictions = []
         seen_predictions = []
-        
+
         for pred in prelim_preds:
             if len(nbest_predictions) >= self.nbest:
                 break
@@ -255,12 +252,9 @@ class DocumentReader:
         """ Simple Answer: retrieves the start/end pair with the highest score."""
         answer_start = torch.argmax(self.model(**inputs)["start_logits"])
         answer_end = torch.argmax(self.model(**inputs)["end_logits"]) + 1
-        
+
         ans = self.get_clean_text(inputs["input_ids"][0][answer_start:answer_end])
-        if ans.lstrip().split(" ")[0] != "[CLS]":
-            return ans
-        else:
-            return ""
+        return ans if ans.lstrip().split(" ")[0] != "[CLS]" else ""
 
     def get_robust_prediction(self, inputs: Dict[str, torch.Tensor]) -> Tuple[str, float]:
         """ Score Answer: retrieves up to nbest answers per context input and their difference from the null score."""

@@ -41,11 +41,13 @@ def generate_pop_docs(pop_kw_df: pd.DataFrame, corpus_df: pd.DataFrame) -> pd.Da
 
     docList = []
     for row_kw in tqdm(pop_kw_df.itertuples()):
-        for row_corp in corpus_df.itertuples():
-            if len(row_corp.keywords):
-                if row_kw.keywords in row_corp.keywords[0]:
-                    docList.append(
-                        {"id": row_corp.id, "keywords": row_kw.keywords})
+        docList.extend(
+            {"id": row_corp.id, "keywords": row_kw.keywords}
+            for row_corp in corpus_df.itertuples()
+            if len(row_corp.keywords)
+            and row_kw.keywords in row_corp.keywords[0]
+        )
+
     docDf = pd.DataFrame(docList, columns=["id", "keywords"])
     docCounts = docDf.groupby("id").count().sort_values(
         "keywords", ascending=False)

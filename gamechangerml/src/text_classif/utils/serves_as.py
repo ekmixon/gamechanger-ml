@@ -14,10 +14,11 @@ def find_serves_as(corpus_dir, glob, output_csv):
     for sent_list, fname in raw2df(corpus_dir, glob):
         for item in sent_list:
             sent = item["sentence"]
-            if contains_entity(sent):
-                if "serves as" in sent or "shall serve as" in sent:
-                    df = df.append(
-                        {"file_name": fname, "content": sent},
-                        ignore_index=True,
-                    )
+            if contains_entity(sent) and (
+                "serves as" in sent or "shall serve as" in sent
+            ):
+                df = df.append(
+                    {"file_name": fname, "content": sent},
+                    ignore_index=True,
+                )
     df.to_csv(output_csv, index=False)

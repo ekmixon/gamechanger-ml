@@ -48,8 +48,7 @@ class QE(object):
         Query expansion via smoothed inverse frequency weighted word embeddings
         and approximate nearest neighbor search.
         """
-        logger.info("{} version {}".format(
-            self.__class__.__name__, self.__version__))
+        logger.info(f"{self.__class__.__name__} version {self.__version__}")
         self.method = method
         self.empty = np.array([0.0])
         self._alpha = 1e-03
@@ -66,13 +65,13 @@ class QE(object):
                 #    spacy_nlp=self.spacy_nlp, model_path="bert-base-uncased"
                 # )
             elif self.method == "emb":
-                logger.info("loading models for {}".format(self.method))
+                logger.info(f"loading models for {self.method}")
                 self._setup_emb(qe_model_dir, vocab_file)
             else:
-                raise ValueError("unknown method: {}".format(self.method))
+                raise ValueError(f"unknown method: {self.method}")
 
-        except (OSError, FileNotFoundError) as e:
-            logger.exception("{}: {}".format(type(e), str(e)), exc_info=True)
+        except OSError as e:
+            logger.exception(f"{type(e)}: {str(e)}", exc_info=True)
 
     def _setup_emb(self, qe_model_dir, vocab_file):
         cfg = QEConfig()
@@ -94,11 +93,11 @@ class QE(object):
                 assert type(self._vocab) is list
                 logger.info(
                     "QE vocabulary size : {:,}".format(len(self._vocab)))
-        except (FileNotFoundError, Exception) as e:
+        except Exception as e:
             raise e
 
     def _similar_to(self, query_str, topn, threshold):
-        expanded = list()
+        expanded = []
 
         q_vec = sif_embedding(query_str, self._nlp, self.word_wt, strict=True)
         if is_zero_vector(q_vec):
@@ -115,14 +114,13 @@ class QE(object):
                 if self._vocab[idx].strip() != query_str.lower().strip()
             ]
             final_cos = np.array([cos_[idx] for idx in range(len(expanded))])
-            logger.debug("{}".format(query_str.lower().strip()))
-            logger.debug(" cos sim {}".format(final_cos))
-            logger.debug("expanded {}".format(expanded))
-            logger.debug("   vocab {}".format(
-                [self._vocab[idx] for idx in v_idx]))
+            logger.debug(f"{query_str.lower().strip()}")
+            logger.debug(f" cos sim {final_cos}")
+            logger.debug(f"expanded {expanded}")
+            logger.debug(f"   vocab {[self._vocab[idx] for idx in v_idx]}")
             return expanded[:topn]
         except IndexError as e:
-            logger.exception("{}: {}".format(type(e), str(e)), exc_info=True)
+            logger.exception(f"{type(e)}: {str(e)}", exc_info=True)
             raise
 
     def expand(self, query_str, topn=2, threshold=0.2, min_tokens=3):
@@ -149,7 +147,7 @@ class QE(object):
                 available.
 
         """
-        expansion_terms = list()
+        expansion_terms = []
         with Timer():
             if not query_str:
                 logger.warning("query string is empty")

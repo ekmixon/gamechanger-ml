@@ -54,7 +54,6 @@ class Rank:
             print("Error could not rerank")
             logger.debug("Could not rerank")
             raise
-            return response
 
     def get_pagerank(self, documents: list, alpha: float = 0.85):
         """ get_pagerank appends pagerank score to document response
@@ -78,17 +77,14 @@ class Rank:
             doc_num = doc["doc_num"]
             doc_id = doc_type + " " + doc_num
             if "ref_list" in doc:
-                ref = list(set([x[0] for x in nodes]) & set(doc["ref_list"]))
-                for j in ref:
-                    edges.append((doc_id, j))
+                ref = list({x[0] for x in nodes} & set(doc["ref_list"]))
+                edges.extend((doc_id, j) for j in ref)
         # create graph
         G = nx.DiGraph()
         G.add_nodes_from([x[0] for x in nodes])
         G.add_edges_from(edges)
         pr = nx.pagerank(G, alpha)
-        pr_sort = {
-            k: v for k, v in sorted(pr.items(), key=lambda item: item[1], reverse=True)
-        }
+        pr_sort = dict(sorted(pr.items(), key=lambda item: item[1], reverse=True))
         new_pr = []
         # resort based on score for response
         for doc in documents:
@@ -125,16 +121,13 @@ class Rank:
             doc_num = doc["doc_num"]
             doc_id = doc_type + " " + doc_num
             if "ref_list" in doc:
-                for ref in doc["ref_list"]:
-                    edges.append((doc_id, ref))
+                edges.extend((doc_id, ref) for ref in doc["ref_list"])
         # create graph
         G = nx.DiGraph()
         G.add_nodes_from([x[0] for x in nodes])
         G.add_edges_from(edges)
         pr = nx.pagerank(G, alpha)
-        pr_sort = {
-            k: v for k, v in sorted(pr.items(), key=lambda item: item[1], reverse=True)
-        }
+        pr_sort = dict(sorted(pr.items(), key=lambda item: item[1], reverse=True))
         pr_df = pd.DataFrame.from_dict(pr_sort, orient="index")
         pr_df.reset_index(inplace=True)
         pr_df.rename(columns={"index": "doc_id", 0: "pr"}, inplace=True)
@@ -156,20 +149,17 @@ class Rank:
             doc_id = doc["doc_type"] + " " + doc["doc_num"]
 
             # entities don't support large text
-            if len(doc["text"]) > 1000000:
-                text = doc["text"][:999999]
-            else:
-                text = doc["text"]
+            text = doc["text"][:999999] if len(doc["text"]) > 1000000 else doc["text"]
             ents = nlp(text).ents
             tagged_ents = [{"text": x.text, "label": x.label_} for x in ents]
             tagged_df = pd.DataFrame(tagged_ents)
 
             if tagged_ents:
                 tagged_df = tagged_df[tagged_df.label == "ORG"]
-            ent_org_list = []
-            for row in tagged_df.itertuples():
-                if row.text in entList:
-                    ent_org_list.append(row.text)
+            ent_org_list = [
+                row.text for row in tagged_df.itertuples() if row.text in entList
+            ]
+
             counter = Counter(ent_org_list).most_common()
 
             corpus_data = {

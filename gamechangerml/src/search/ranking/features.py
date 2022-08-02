@@ -18,10 +18,7 @@ df.orgs.replace({"'": '"'}, regex=True, inplace=True)
 rank_min = 0.00001
 
 def get_pr(docId: str) -> float:
-    if docId in list(df.id):
-        return df[df.id == docId].pr.values[0]
-    else:
-        return rank_min
+    return df[df.id == docId].pr.values[0] if docId in list(df.id) else rank_min
 
 
 def get_orgs(docId: str) -> dict:
@@ -32,11 +29,10 @@ def get_orgs(docId: str) -> dict:
 
 
 def get_kw_score(docId: str) -> float:
-    if docId in list(df.id):
-        kw_score = df[df.id == docId].kw_in_doc_score.values[0]
-        if pd.isnull(kw_score):
-            return rank_min
-    else:
+    if docId not in list(df.id):
+        return rank_min
+    kw_score = df[df.id == docId].kw_in_doc_score.values[0]
+    if pd.isnull(kw_score):
         return rank_min
 
 def get_txt_length(docId: str) -> float:
