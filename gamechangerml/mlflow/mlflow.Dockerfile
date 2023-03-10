@@ -1,4 +1,4 @@
-FROM python:3.6
+FROM python:3.12.0a5
 
 
 RUN pip install mlflow==1.3.0 && \
